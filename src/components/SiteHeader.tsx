@@ -3,11 +3,13 @@ import { MapPin, Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 
 import logo from "@/assets/jhb-logo-new.png.asset.json";
+import { BreakingTicker } from "@/components/BreakingTicker";
 import { categories, trendingTags } from "@/data/news";
 
 const navLinks = [
   { to: "/", label: "होम" },
   { to: "/epaper", label: "ई-पेपर" },
+  { to: "/live-tv", label: "लाइव टीवी" },
   { to: "/videos", label: "वीडियो" },
 ];
 
