@@ -46,7 +46,7 @@ export function SiteHeader() {
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <nav className="flex flex-1 items-stretch overflow-x-auto whitespace-nowrap">
+          <nav className="no-scrollbar flex flex-1 items-stretch overflow-x-auto whitespace-nowrap">
             {navLinks.map((item) => (
               <Link
                 key={item.to}
@@ -88,9 +88,11 @@ export function SiteHeader() {
         </div>
       </div>
 
+      <BreakingTicker />
+
       {/* Trending strip */}
       <div className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-[1400px] items-center gap-4 overflow-x-auto px-4 py-2 text-xs whitespace-nowrap">
+        <div className="no-scrollbar mx-auto flex max-w-[1400px] items-center gap-4 overflow-x-auto px-4 py-2 text-xs whitespace-nowrap">
           <span className="font-bold text-primary">#</span>
           {trendingTags.map((tag) => (
             <span key={tag} className="cursor-pointer text-muted-foreground hover:text-primary">
