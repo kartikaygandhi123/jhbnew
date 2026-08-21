@@ -1,11 +1,11 @@
 {
-  "asset_id": "4ba36f3f-36de-472d-a8cb-8259cbdd8fa2",
-  "content_type": "image/png",
-  "created_at": "2026-08-20T14:41:33Z",
-  "original_filename": "jhb-logo-new.png",
+  "version": 1,
+  "asset_id": "ff7b3b13-4c01-4734-99a5-eb83aff61ecd",
   "project_id": "e1570adb-135a-4fa3-9b14-7d714250699e",
-  "r2_key": "a/v1/e1570adb-135a-4fa3-9b14-7d714250699e/4ba36f3f-36de-472d-a8cb-8259cbdd8fa2/jhb-logo-new.png",
-  "size": 1762733,
-  "url": "/__l5e/assets-v1/4ba36f3f-36de-472d-a8cb-8259cbdd8fa2/jhb-logo-new.png",
-  "version": 1
+  "url": "/__l5e/assets-v1/ff7b3b13-4c01-4734-99a5-eb83aff61ecd/jhb-logo.png",
+  "r2_key": "a/v1/e1570adb-135a-4fa3-9b14-7d714250699e/ff7b3b13-4c01-4734-99a5-eb83aff61ecd/jhb-logo.png",
+  "original_filename": "jhb-logo.png",
+  "size": 1152345,
+  "content_type": "image/png",
+  "created_at": "2026-08-21T18:13:54Z"
 }

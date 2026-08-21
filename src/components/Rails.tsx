@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Newspaper, PlayCircle } from "lucide-react";
+import { Newspaper, PlayCircle, Radio } from "lucide-react";
 
 import { RailItem, SectionHeading } from "@/components/news";
 import { latestNews, trendingNews, videos } from "@/data/news";
@@ -31,6 +31,12 @@ export function LeftRail() {
           className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-xs font-semibold transition-colors hover:bg-accent"
         >
           <PlayCircle className="h-4 w-4" /> लेटेस्ट वीडियो
+        </Link>
+        <Link
+          to="/live-tv"
+          className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md border border-primary px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+        >
+          <Radio className="h-4 w-4" /> लाइव टीवी देखें
         </Link>
       </section>
     </div>
