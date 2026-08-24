@@ -14,16 +14,360 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      articles: {
+        Row: {
+          body: string
+          category_label: string
+          category_slug: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_breaking: boolean
+          kicker: string
+          place: string
+          published: boolean
+          section: string
+          slug: string | null
+          sort_order: number
+          summary: string
+          time_label: string
+          title: string
+          tone: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          category_label?: string
+          category_slug?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_breaking?: boolean
+          kicker?: string
+          place?: string
+          published?: boolean
+          section?: string
+          slug?: string | null
+          sort_order?: number
+          summary?: string
+          time_label?: string
+          title: string
+          tone?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category_label?: string
+          category_slug?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_breaking?: boolean
+          kicker?: string
+          place?: string
+          published?: boolean
+          section?: string
+          slug?: string | null
+          sort_order?: number
+          summary?: string
+          time_label?: string
+          title?: string
+          tone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      epaper_editions: {
+        Row: {
+          city: string
+          created_at: string
+          date_label: string
+          id: string
+          is_current: boolean
+          pdf_url: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          date_label: string
+          id?: string
+          is_current?: boolean
+          pdf_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          date_label?: string
+          id?: string
+          is_current?: boolean
+          pdf_url?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      epaper_pages: {
+        Row: {
+          created_at: string
+          edition_id: string
+          id: string
+          image_url: string
+          page_no: number
+          thumb_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          edition_id: string
+          id?: string
+          image_url: string
+          page_no: number
+          thumb_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          edition_id?: string
+          id?: string
+          image_url?: string
+          page_no?: number
+          thumb_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epaper_pages_edition_id_fkey"
+            columns: ["edition_id"]
+            isOneToOne: false
+            referencedRelation: "epaper_editions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_channels: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_live: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+          youtube_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_live?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+          youtube_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_live?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          youtube_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          breaking_label: string
+          contact_email: string
+          contact_phone: string
+          footer_text: string
+          id: string
+          lead_kicker: string
+          lead_title: string
+          logo_url: string | null
+          site_name: string
+          ticker_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          breaking_label?: string
+          contact_email?: string
+          contact_phone?: string
+          footer_text?: string
+          id?: string
+          lead_kicker?: string
+          lead_title?: string
+          logo_url?: string | null
+          site_name?: string
+          ticker_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          breaking_label?: string
+          contact_email?: string
+          contact_phone?: string
+          footer_text?: string
+          id?: string
+          lead_kicker?: string
+          lead_title?: string
+          logo_url?: string | null
+          site_name?: string
+          ticker_seconds?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      trending_tags: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      videos: {
+        Row: {
+          category: string
+          created_at: string
+          duration: string
+          id: string
+          published: boolean
+          sort_order: number
+          time_label: string
+          title: string
+          updated_at: string
+          youtube_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          duration?: string
+          id?: string
+          published?: boolean
+          sort_order?: number
+          time_label?: string
+          title: string
+          updated_at?: string
+          youtube_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          duration?: string
+          id?: string
+          published?: boolean
+          sort_order?: number
+          time_label?: string
+          title?: string
+          updated_at?: string
+          youtube_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "editor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +494,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "editor"],
+    },
   },
 } as const
