@@ -1,70 +1,90 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Bookmark, Clock, Facebook, Share2, Twitter } from "lucide-react";
+import { Clock, MapPin } from "lucide-react";
 
-import { LeftRail, RightRail } from "@/components/Rails";
+import { RailItem, SectionHeading } from "@/components/news";
 import { ThreePane } from "@/components/ThreePane";
-import { articleImageMap, bigNews, deshNews, feedNews, getArticleContent, latestNews, trendingNews } from "@/data/news";
-
-const allArticles = [...bigNews, ...deshNews, ...feedNews, ...latestNews, ...trendingNews];
+import { articleParagraphs, useArticles } from "@/lib/content";
+import { getPublicArticle } from "@/lib/public-content.functions";
 
 export const Route = createFileRoute("/article/$id")({
-  loader: ({ params }) => {
-    const article = allArticles.find((a) => a.id === params.id);
+  loader: async ({ params }) => {
+    const article = await getPublicArticle({ data: { key: params.id } });
     if (!article) throw notFound();
     return { article };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "खबर नहीं मिली — जय हिन्द भारत" }, { name: "robots", content: "noindex" }] };
+      return { meta: [{ title: "खबर उपलब्ध नहीं — जय हिन्द भारत" }, { name: "robots", content: "noindex" }] };
     }
-    const { article } = loaderData;
-    const title = `${article.title} — जय हिन्द भारत`;
-    const description = article.summary || `${article.category} से जुड़ी ताजा हिंदी खबर।`;
+    const a = loaderData.article;
+    const desc = (a.summary || a.title).slice(0, 155);
     return {
       meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
+        { title: `${a.title.slice(0, 60)} — जय हिन्द भारत` },
+        { name: "description", content: desc },
+        { property: "og:title", content: a.title },
+        { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
+        ...(a.image_url?.startsWith("https://")
+          ? [
+              { property: "og:image", content: a.image_url },
+              { name: "twitter:image", content: a.image_url },
+            ]
+          : []),
       ],
     };
   },
+  errorComponent: () => (
+    <ThreePane>
+      <p className="text-sm text-muted-foreground">खबर लोड नहीं हो सकी। कृपया दोबारा कोशिश करें।</p>
+    </ThreePane>
+  ),
+  notFoundComponent: () => (
+    <ThreePane>
+      <SectionHeading>खबर नहीं मिली</SectionHeading>
+      <Link to="/" className="text-sm font-semibold text-primary">
+        होम पेज पर लौटें
+      </Link>
+    </ThreePane>
+  ),
   component: ArticlePage,
 });
 
 function ArticlePage() {
   const { article } = Route.useLoaderData();
-  const image = articleImageMap[article.id];
-  const content = getArticleContent(article);
-  const related = allArticles.filter((a) => a.id !== article.id && a.categorySlug === article.categorySlug).slice(0, 3);
+  const { data: all } = useArticles();
+  const related = (all ?? [])
+    .filter((a) => a.category_slug === article.category_slug && a.id !== article.id)
+    .slice(0, 5);
 
   return (
-    <ThreePane left={<LeftRail />} right={<RightRail />}>
+    <ThreePane>
       <article className="rounded-md border border-border bg-card p-4 sm:p-6">
         <Link
-          to="/"
-          className="mb-4 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary"
+          to="/category/$slug"
+          params={{ slug: article.category_slug }}
+          className="text-xs font-bold text-primary"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> होम पर वापस जाएं
+          {article.category_label}
         </Link>
+        <h1 className="headline mt-2 text-2xl leading-snug font-bold sm:text-3xl">{article.title}</h1>
+        {article.summary ? (
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground">{article.summary}</p>
+        ) : null}
 
-        <span className="block text-xs font-bold text-primary">{article.category}</span>
-        <h1 className="headline mt-2 text-xl font-bold leading-snug sm:text-2xl lg:text-3xl">{article.title}</h1>
-
-        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-          <span className="font-semibold text-foreground">{article.place}</span>
+        <div className="mt-3 flex flex-wrap items-center gap-4 border-y border-border py-2 text-[11px] text-muted-foreground">
           <span className="flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5" /> {article.time}
+            <MapPin className="h-3 w-3" /> {article.place}
+          </span>
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" /> {article.time_label}
           </span>
         </div>
 
-        {image ? (
+        {article.image_url ? (
           <img
-            src={image}
+            src={article.image_url}
             alt={article.title}
             width={1024}
             height={640}
@@ -72,60 +92,19 @@ function ArticlePage() {
           />
         ) : null}
 
-        <div className="mt-5 space-y-4 text-sm leading-relaxed text-foreground sm:text-base">
-          {content.map((paragraph: string, i: number) => (
-            <p key={i}>{paragraph}</p>
+        <div className="mt-4 space-y-4 text-[15px] leading-8">
+          {articleParagraphs(article).map((p, i) => (
+            <p key={i}>{p}</p>
           ))}
-        </div>
-
-        <div className="mt-6 flex items-center gap-2 border-t border-border pt-4">
-          <span className="text-xs text-muted-foreground">शेयर करें:</span>
-          <button
-            type="button"
-            aria-label="Facebook पर शेयर करें"
-            className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:text-primary"
-          >
-            <Facebook className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="Twitter पर शेयर करें"
-            className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:text-primary"
-          >
-            <Twitter className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="कॉपी लिंक"
-            className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:text-primary"
-          >
-            <Share2 className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="बुकमार्क करें"
-            className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:text-primary"
-          >
-            <Bookmark className="h-4 w-4" />
-          </button>
         </div>
       </article>
 
       {related.length > 0 && (
-        <section className="mt-6 rounded-md border border-border bg-card p-4">
-          <h2 className="headline mb-3 text-lg font-bold">इसी श्रेणी में और खबरें</h2>
+        <section className="mt-6 rounded-md border border-border bg-card p-3">
+          <SectionHeading>इसे भी पढ़ें</SectionHeading>
           <div className="space-y-3">
             {related.map((a) => (
-              <Link
-                key={a.id}
-                to="/article/$id"
-                params={{ id: a.id }}
-                className="block border-b border-border pb-3 last:border-0"
-              >
-                <p className="text-xs text-primary">{a.category}</p>
-                <p className="headline text-sm font-semibold hover:text-primary">{a.title}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{a.time}</p>
-              </Link>
+              <RailItem key={a.id} article={a} />
             ))}
           </div>
         </section>
