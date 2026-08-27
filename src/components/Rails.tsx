@@ -1,25 +1,31 @@
 import { Link } from "@tanstack/react-router";
 import { Newspaper, PlayCircle, Radio } from "lucide-react";
 
-import { RailItem, SectionHeading } from "@/components/news";
-import { latestNews, trendingNews, videos } from "@/data/news";
-import horoscope from "@/assets/news-parliament.jpg";
+import { ListSkeleton, RailItem, SectionHeading } from "@/components/news";
+import { bySection, useArticles, useSiteSettings, useVideos } from "@/lib/content";
 
 export function LeftRail() {
+  const { data: articles, isLoading } = useArticles();
+  const { data: settings } = useSiteSettings();
+  const latest = bySection(articles, "latest");
+
   return (
     <div className="space-y-4">
       <section className="rounded-md border border-border bg-card p-3">
         <SectionHeading>ताजा खबरें</SectionHeading>
-        <div className="space-y-3">
-          {latestNews.map((a) => (
-            <RailItem key={a.id} article={a} />
-          ))}
-        </div>
+        {isLoading ? (
+          <ListSkeleton />
+        ) : (
+          <div className="space-y-3">
+            {latest.map((a) => (
+              <RailItem key={a.id} article={a} />
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="rounded-md border border-border bg-card p-4 text-center">
-        <p className="headline text-lg font-bold">जय हिन्द भारत</p>
-        <p className="mt-1 text-[11px] text-muted-foreground">निष्पक्ष • निर्भीक • निरंतर</p>
+        <p className="headline text-lg font-bold">{settings?.site_name ?? "जय हिन्द भारत"}</p>
         <Link
           to="/epaper"
           className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
@@ -43,25 +49,40 @@ export function LeftRail() {
   );
 }
 
-export function RightRail() {
+export function TrendingRail() {
+  const { data: articles, isLoading } = useArticles();
+  const trending = bySection(articles, "trending");
+
   return (
-    <div className="space-y-4">
-      <section className="rounded-md border border-border bg-card p-3">
-        <SectionHeading>ट्रेंडिंग</SectionHeading>
+    <section className="rounded-md border border-border bg-card p-3">
+      <SectionHeading>ट्रेंडिंग</SectionHeading>
+      {isLoading ? (
+        <ListSkeleton />
+      ) : (
         <div className="space-y-3">
-          {trendingNews.map((a, i) => (
-            <RailItem key={a.id} article={a} {...(i === 0 ? { thumb: horoscope } : {})} />
+          {trending.map((a, i) => (
+            <RailItem key={a.id} article={a} withThumb={i === 0} />
           ))}
         </div>
-      </section>
+      )}
+    </section>
+  );
+}
+
+export function RightRail() {
+  const { data: videos } = useVideos();
+
+  return (
+    <div className="space-y-4">
+      <TrendingRail />
 
       <section className="rounded-md border border-border bg-card p-3">
         <SectionHeading>वीडियो</SectionHeading>
         <div className="space-y-3">
-          {videos.slice(0, 3).map((v) => (
+          {(videos ?? []).slice(0, 3).map((v) => (
             <Link key={v.id} to="/videos" className="block">
               <img
-                src={`https://i.ytimg.com/vi/${v.youtubeId}/mqdefault.jpg`}
+                src={`https://i.ytimg.com/vi/${v.youtube_id}/mqdefault.jpg`}
                 alt=""
                 width={320}
                 height={180}
