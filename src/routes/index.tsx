@@ -1,104 +1,111 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
-import { LeftRail, RightRail } from "@/components/Rails";
+import { FeedCard, ListSkeleton, SectionHeading, TileCard } from "@/components/news";
 import { ThreePane } from "@/components/ThreePane";
-import { FeedCard, SectionHeading, TileCard } from "@/components/news";
-import { bigNews, deshNews, feedNews, leadStory, videos } from "@/data/news";
-import market from "@/assets/news-market.jpg";
-import metro from "@/assets/news-metro.jpg";
-import monsoon from "@/assets/news-monsoon.jpg";
-import parliament from "@/assets/news-parliament.jpg";
+import { bySection, useArticles, useSiteSettings, useTrendingTags } from "@/lib/content";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "जय हिन्द भारत — हिंदी समाचार, ई-पेपर और वीडियो" },
+      { title: "जय हिन्द भारत — ताजा हिंदी समाचार, ई-पेपर और लाइव टीवी" },
       {
         name: "description",
         content:
-          "देश, राज्य, कारोबार, खेल और मनोरंजन की ताजा हिंदी खबरें, दैनिक ई-पेपर और लेटेस्ट वीडियो एक ही जगह।",
+          "देश, राज्य, दुनिया, कारोबार, खेल और मनोरंजन की ताजा हिंदी खबरें, आज का ई-पेपर, वीडियो और 24x7 लाइव टीवी — जय हिन्द भारत पर।",
       },
-      { property: "og:title", content: "जय हिन्द भारत — हिंदी समाचार, ई-पेपर और वीडियो" },
+      { property: "og:title", content: "जय हिन्द भारत — ताजा हिंदी समाचार" },
       {
         property: "og:description",
-        content: "देश, राज्य, कारोबार, खेल और मनोरंजन की ताजा हिंदी खबरें, दैनिक ई-पेपर और लेटेस्ट वीडियो एक ही जगह।",
+        content: "ताजा हिंदी खबरें, ई-पेपर, वीडियो और लाइव टीवी एक ही जगह।",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Home,
 });
 
-const tileImages = [parliament, metro, monsoon];
-const feedImages = [market, parliament, metro, monsoon, market, metro];
-
 function Home() {
+  const { data: articles, isLoading } = useArticles();
+  const { data: tags } = useTrendingTags();
+  const { data: settings } = useSiteSettings();
+
+  const big = bySection(articles, "big");
+  const desh = bySection(articles, "desh");
+  const feed = bySection(articles, "feed");
+  const lead = big[0];
+
   return (
-    <>
-      <div className="mx-auto max-w-[1400px] px-4 pt-5 text-center">
-        <span className="inline-block bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
-          {leadStory.kicker}
-        </span>
-        <h1 className="headline mx-auto mt-3 max-w-4xl text-2xl font-bold sm:text-3xl lg:text-4xl">
-          {leadStory.title}
-        </h1>
-      </div>
-
-      <ThreePane left={<LeftRail />} right={<RightRail />}>
-        <div className="grid gap-5 md:grid-cols-2">
-          <section>
-            <SectionHeading>बड़ी खबरें</SectionHeading>
-            <div className="space-y-3">
-              {bigNews.map((a, i) => (
-                <TileCard key={a.id} article={a} {...(tileImages[i] ? { image: tileImages[i] } : {})} />
-              ))}
-            </div>
-          </section>
-          <section>
-            <SectionHeading>देश</SectionHeading>
-            <div className="space-y-3">
-              {deshNews.map((a, i) => (
-                <TileCard
-                  key={a.id}
-                  article={a}
-                  {...(tileImages[2 - i] ? { image: tileImages[2 - i] } : {})}
-                />
-              ))}
-            </div>
-          </section>
-        </div>
-
-        <section className="mt-6">
-          <SectionHeading>आज की सुर्खियां</SectionHeading>
-          <div className="space-y-4">
-            {feedNews.map((a, i) => (
-              <FeedCard key={a.id} article={a} {...(feedImages[i] ? { image: feedImages[i] } : {})} />
-            ))}
-          </div>
-        </section>
-
-        <section className="mt-6">
-          <SectionHeading>लेटेस्ट वीडियो</SectionHeading>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {videos.slice(0, 4).map((v) => (
-              <Link key={v.id} to="/videos" className="group block rounded-md border border-border bg-card p-2">
-                <img
-                  src={`https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`}
-                  alt=""
-                  width={480}
-                  height={270}
-                  loading="lazy"
-                  decoding="async"
-                  className="aspect-video w-full rounded-sm object-cover"
-                />
-                <p className="headline mt-2 text-sm font-semibold group-hover:text-primary">{v.title}</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">
-                  {v.category} • {v.duration}
-                </p>
+    <ThreePane>
+      <div className="space-y-6">
+        <section>
+          <p className="text-xs font-semibold text-primary">
+            {settings?.lead_kicker ?? "आज के अहम घटनाक्रम"}
+          </p>
+          <h1 className="headline mt-1 text-2xl leading-snug font-bold sm:text-3xl">
+            {lead ? (
+              <Link to="/article/$id" params={{ id: lead.slug || lead.id }} className="hover:text-primary">
+                {settings?.lead_title ?? lead.title}
               </Link>
-            ))}
-          </div>
+            ) : (
+              (settings?.lead_title ?? "जय हिन्द भारत")
+            )}
+          </h1>
+          {tags && tags.length > 0 && (
+            <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
+              {tags.map((t) => (
+                <Link
+                  key={t.id}
+                  to="/search"
+                  search={{ q: t.label }}
+                  className="shrink-0 rounded-full border border-border px-3 py-1 text-xs font-semibold whitespace-nowrap hover:border-primary hover:text-primary"
+                >
+                  #{t.label}
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
-      </ThreePane>
-    </>
+
+        <section>
+          <SectionHeading>बड़ी खबरें</SectionHeading>
+          {isLoading ? (
+            <ListSkeleton />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {big.map((a) => (
+                <TileCard key={a.id} article={a} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section>
+          <SectionHeading>देश और दुनिया</SectionHeading>
+          {isLoading ? (
+            <ListSkeleton />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {desh.map((a) => (
+                <TileCard key={a.id} article={a} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section>
+          <SectionHeading>आपके लिए</SectionHeading>
+          {isLoading ? (
+            <ListSkeleton rows={4} />
+          ) : (
+            <div className="space-y-3">
+              {feed.map((a) => (
+                <FeedCard key={a.id} article={a} />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </ThreePane>
   );
 }

@@ -1,10 +1,9 @@
-import { Link } from "@tanstack/react-router";
-import { MapPin, Menu, Search, X } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { LogIn, Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 
-import logo from "@/assets/jhb-logo-new.png.asset.json";
 import { BreakingTicker } from "@/components/BreakingTicker";
-import { categories, trendingTags } from "@/data/news";
+import { useCategories, useSiteSettings } from "@/lib/content";
 
 const navLinks = [
   { to: "/", label: "होम" },
@@ -15,23 +14,38 @@ const navLinks = [
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [term, setTerm] = useState("");
+  const navigate = useNavigate();
+  const { data: categories } = useCategories();
+  const { data: settings } = useSiteSettings();
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = term.trim();
+    if (!q) return;
+    setSearchOpen(false);
+    setOpen(false);
+    void navigate({ to: "/search", search: { q } });
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-card">
       {/* Masthead */}
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3">
         <Link to="/" className="flex min-w-0 items-center">
-          <img
-            src={logo.url}
-            alt="जय हिन्द भारत"
-            width={520}
-            height={348}
-            className="h-14 w-auto sm:h-20"
-          />
+          {settings?.logo_url ? (
+            <img
+              src={settings.logo_url}
+              alt={settings.site_name}
+              width={520}
+              height={348}
+              className="h-14 w-auto sm:h-20"
+            />
+          ) : (
+            <span className="headline text-2xl font-bold">{settings?.site_name ?? "जय हिन्द भारत"}</span>
+          )}
         </Link>
-        <p className="hidden text-xs font-semibold tracking-wide text-muted-foreground sm:block">
-          निष्पक्ष • निर्भीक • निरंतर
-        </p>
       </div>
 
       {/* Dark navigation bar */}
@@ -58,7 +72,7 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            {categories.map((cat) => (
+            {(categories ?? []).map((cat) => (
               <Link
                 key={cat.slug}
                 to="/category/$slug"
@@ -71,16 +85,17 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          <button
-            type="button"
+          <Link
+            to="/admin"
+            aria-label="एडमिन पैनल"
             className="hidden items-center gap-1.5 px-4 text-sm font-semibold transition-colors hover:bg-white/10 sm:flex"
           >
-            <MapPin className="h-4 w-4" />
-            मेरा शहर
-          </button>
+            <LogIn className="h-4 w-4" /> एडमिन
+          </Link>
           <button
             type="button"
             aria-label="खोजें"
+            onClick={() => setSearchOpen((v) => !v)}
             className="grid w-12 shrink-0 place-items-center transition-colors hover:bg-white/10"
           >
             <Search className="h-4 w-4" />
@@ -88,35 +103,60 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <BreakingTicker />
+      {searchOpen && (
+        <form onSubmit={submitSearch} className="border-b border-border bg-surface">
+          <div className="mx-auto flex max-w-[1400px] items-center gap-2 px-4 py-2">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <input
+              autoFocus
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              placeholder="खबर खोजें…"
+              className="h-9 w-full bg-transparent text-sm outline-none"
+            />
+            <button
+              type="submit"
+              className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+            >
+              खोजें
+            </button>
+          </div>
+        </form>
+      )}
 
-      {/* Trending strip */}
-      <div className="border-b border-border bg-surface">
-        <div className="no-scrollbar mx-auto flex max-w-[1400px] items-center gap-4 overflow-x-auto px-4 py-2 text-xs whitespace-nowrap">
-          <span className="font-bold text-primary">#</span>
-          {trendingTags.map((tag) => (
-            <span key={tag} className="cursor-pointer text-muted-foreground hover:text-primary">
-              {tag}
-            </span>
-          ))}
-        </div>
-      </div>
+      <BreakingTicker />
 
       {open && (
         <nav className="border-b border-border bg-card px-4 py-3">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {[...navLinks, ...categories.map((c) => ({ to: `/category/${c.slug}`, label: c.label }))].map(
-              (item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setOpen(false)}
-                  className="rounded-md border border-border px-3 py-2 text-sm font-semibold"
-                >
-                  {item.label}
-                </Link>
-              ),
-            )}
+            {navLinks.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className="rounded-md border border-border px-3 py-2 text-sm font-semibold"
+              >
+                {item.label}
+              </Link>
+            ))}
+            {(categories ?? []).map((cat) => (
+              <Link
+                key={cat.slug}
+                to="/category/$slug"
+                params={{ slug: cat.slug }}
+                onClick={() => setOpen(false)}
+                className="rounded-md border border-border px-3 py-2 text-sm font-semibold"
+              >
+                {cat.label}
+              </Link>
+            ))}
+            <Link
+              to="/admin"
+              onClick={() => setOpen(false)}
+              className="rounded-md border border-border px-3 py-2 text-sm font-semibold"
+            >
+              एडमिन पैनल
+            </Link>
           </div>
         </nav>
       )}

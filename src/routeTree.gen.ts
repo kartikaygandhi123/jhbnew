@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EpaperRouteImport } from './routes/epaper'
 import { Route as LiveTvRouteImport } from './routes/live-tv'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as VideosRouteImport } from './routes/videos'
 import { Route as ArticleIdRouteImport } from './routes/article.$id'
 import { Route as CategorySlugRouteImport } from './routes/category.$slug'
@@ -30,6 +31,11 @@ const EpaperRoute = EpaperRouteImport.update({
 const LiveTvRoute = LiveTvRouteImport.update({
   id: '/live-tv',
   path: '/live-tv',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VideosRoute = VideosRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/epaper': typeof EpaperRoute
   '/live-tv': typeof LiveTvRoute
+  '/search': typeof SearchRoute
   '/videos': typeof VideosRoute
   '/article/$id': typeof ArticleIdRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/epaper': typeof EpaperRoute
   '/live-tv': typeof LiveTvRoute
+  '/search': typeof SearchRoute
   '/videos': typeof VideosRoute
   '/article/$id': typeof ArticleIdRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/epaper': typeof EpaperRoute
   '/live-tv': typeof LiveTvRoute
+  '/search': typeof SearchRoute
   '/videos': typeof VideosRoute
   '/article/$id': typeof ArticleIdRoute
   '/category/$slug': typeof CategorySlugRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/epaper'
     | '/live-tv'
+    | '/search'
     | '/videos'
     | '/article/$id'
     | '/category/$slug'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/epaper'
     | '/live-tv'
+    | '/search'
     | '/videos'
     | '/article/$id'
     | '/category/$slug'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/epaper'
     | '/live-tv'
+    | '/search'
     | '/videos'
     | '/article/$id'
     | '/category/$slug'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EpaperRoute: typeof EpaperRoute
   LiveTvRoute: typeof LiveTvRoute
+  SearchRoute: typeof SearchRoute
   VideosRoute: typeof VideosRoute
   ArticleIdRoute: typeof ArticleIdRoute
   CategorySlugRoute: typeof CategorySlugRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/live-tv'
       fullPath: '/live-tv'
       preLoaderRoute: typeof LiveTvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/videos': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EpaperRoute: EpaperRoute,
   LiveTvRoute: LiveTvRoute,
+  SearchRoute: SearchRoute,
   VideosRoute: VideosRoute,
   ArticleIdRoute: ArticleIdRoute,
   CategorySlugRoute: CategorySlugRoute,
