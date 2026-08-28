@@ -1,0 +1,336 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Plus, Save, Trash2, Upload } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+
+import { supabase } from "@/integrations/supabase/client";
+import { uploadMedia } from "@/lib/upload";
+
+export type FieldType = "text" | "textarea" | "number" | "boolean" | "image" | "file" | "select";
+
+export interface FieldDef {
+  name: string;
+  label: string;
+  type: FieldType;
+  options?: { value: string; label: string }[];
+  placeholder?: string;
+}
+
+type Row = Record<string, unknown>;
+
+interface Props {
+  table: string;
+  title: string;
+  fields: FieldDef[];
+  orderBy?: string;
+  filter?: { column: string; value: string };
+  defaults?: Row;
+}
+
+export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults }: Props) {
+  const qc = useQueryClient();
+  const [draft, setDraft] = useState<Row | null>(null);
+
+  const listKey = ["admin", table, filter?.value ?? ""];
+
+  const { data: rows, isLoading } = useQuery({
+    queryKey: listKey,
+    queryFn: async (): Promise<Row[]> => {
+      let q = supabase.from(table as never).select("*");
+      if (filter) q = q.eq(filter.column, filter.value);
+      const { data, error } = await q.order(orderBy);
+      if (error) throw error;
+      return (data ?? []) as Row[];
+    },
+  });
+
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: listKey });
+    void qc.invalidateQueries();
+  };
+
+  const save = useMutation({
+    mutationFn: async (row: Row) => {
+      const payload = { ...row };
+      const id = payload.id as string | undefined;
+      if (id) {
+        delete payload.created_at;
+        delete payload.updated_at;
+        const { error } = await supabase
+          .from(table as never)
+          .update(payload as never)
+          .eq("id", id);
+        if (error) throw error;
+      } else {
+        delete payload.id;
+        const { error } = await supabase.from(table as never).insert(payload as never);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("सेव हो गया");
+      setDraft(null);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from(table as never)
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("हटा दिया गया");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const startNew = () => {
+    const blank: Row = { ...defaults };
+    if (filter) blank[filter.column] = filter.value;
+    for (const f of fields) {
+      if (!(f.name in blank)) blank[f.name] = f.type === "boolean" ? false : f.type === "number" ? 0 : "";
+    }
+    setDraft(blank);
+  };
+
+  return (
+    <section className="rounded-md border border-border bg-card">
+      <header className="flex items-center justify-between border-b border-border px-3 py-2">
+        <h2 className="headline text-base font-bold">{title}</h2>
+        <button
+          type="button"
+          onClick={startNew}
+          className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground"
+        >
+          <Plus className="h-3.5 w-3.5" /> नया
+        </button>
+      </header>
+
+      {draft && (
+        <RecordForm
+          fields={fields}
+          value={draft}
+          onChange={setDraft}
+          onCancel={() => setDraft(null)}
+          onSave={() => save.mutate(draft)}
+          saving={save.isPending}
+        />
+      )}
+
+      <div className="divide-y divide-border">
+        {isLoading && <p className="px-3 py-4 text-xs text-muted-foreground">लोड हो रहा है…</p>}
+        {(rows ?? []).map((row) => (
+          <RowItem
+            key={String(row.id)}
+            row={row}
+            fields={fields}
+            onSave={(next) => save.mutate(next)}
+            onDelete={() => remove.mutate(String(row.id))}
+            saving={save.isPending}
+          />
+        ))}
+        {!isLoading && (rows ?? []).length === 0 && (
+          <p className="px-3 py-4 text-xs text-muted-foreground">कोई रिकॉर्ड नहीं।</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function RowItem({
+  row,
+  fields,
+  onSave,
+  onDelete,
+  saving,
+}: {
+  row: Row;
+  fields: FieldDef[];
+  onSave: (row: Row) => void;
+  onDelete: () => void;
+  saving: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState<Row>(row);
+  const primary = fields[0]?.name ?? "id";
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 px-3 py-2">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="min-w-0 flex-1 truncate text-left text-sm font-semibold hover:text-primary"
+        >
+          {String(row[primary] ?? row.id)}
+        </button>
+        <button
+          type="button"
+          aria-label="हटाएं"
+          onClick={() => {
+            if (confirm("क्या आप वाकई हटाना चाहते हैं?")) onDelete();
+          }}
+          className="grid h-8 w-8 place-items-center rounded-md border border-border text-primary hover:bg-accent"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+      {open && (
+        <RecordForm
+          fields={fields}
+          value={value}
+          onChange={setValue}
+          onCancel={() => setOpen(false)}
+          onSave={() => onSave(value)}
+          saving={saving}
+        />
+      )}
+    </div>
+  );
+}
+
+function RecordForm({
+  fields,
+  value,
+  onChange,
+  onCancel,
+  onSave,
+  saving,
+}: {
+  fields: FieldDef[];
+  value: Row;
+  onChange: (row: Row) => void;
+  onCancel: () => void;
+  onSave: () => void;
+  saving: boolean;
+}) {
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  const set = (name: string, v: unknown) => {
+    onChange({ ...value, [name]: v });
+  };
+
+  const pick = async (name: string, file: File | undefined, folder: string) => {
+    if (!file) return;
+    setUploading(name);
+    try {
+      set(name, await uploadMedia(file, folder));
+      toast.success("फ़ाइल अपलोड हो गई");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "अपलोड विफल");
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  return (
+    <div className="grid gap-3 border-t border-border bg-surface p-3 sm:grid-cols-2">
+      {fields.map((f) => (
+        <label key={f.name} className={`block text-xs ${f.type === "textarea" ? "sm:col-span-2" : ""}`}>
+          <span className="mb-1 block font-semibold text-muted-foreground">{f.label}</span>
+
+          {f.type === "textarea" && (
+            <textarea
+              rows={5}
+              value={String(value[f.name] ?? "")}
+              onChange={(e) => set(f.name, e.target.value)}
+              placeholder={f.placeholder}
+              className="w-full rounded-md border border-border bg-background p-2 text-sm"
+            />
+          )}
+
+          {f.type === "boolean" && (
+            <input
+              type="checkbox"
+              checked={Boolean(value[f.name])}
+              onChange={(e) => set(f.name, e.target.checked)}
+              className="h-4 w-4"
+            />
+          )}
+
+          {f.type === "number" && (
+            <input
+              type="number"
+              value={Number(value[f.name] ?? 0)}
+              onChange={(e) => set(f.name, Number(e.target.value))}
+              className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+            />
+          )}
+
+          {f.type === "select" && (
+            <select
+              value={String(value[f.name] ?? "")}
+              onChange={(e) => set(f.name, e.target.value)}
+              className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+            >
+              <option value="">—</option>
+              {(f.options ?? []).map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {(f.type === "image" || f.type === "file") && (
+            <span className="flex items-center gap-2">
+              <input
+                value={String(value[f.name] ?? "")}
+                onChange={(e) => set(f.name, e.target.value)}
+                placeholder="URL या अपलोड करें"
+                className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+              />
+              <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1 rounded-md border border-border px-2 text-xs font-semibold hover:bg-accent">
+                {uploading === f.name ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5" />
+                )}
+                अपलोड
+                <input
+                  type="file"
+                  accept={f.type === "image" ? "image/*" : undefined}
+                  className="hidden"
+                  onChange={(e) => void pick(f.name, e.target.files?.[0], f.type === "image" ? "images" : "files")}
+                />
+              </label>
+            </span>
+          )}
+
+          {f.type === "text" && (
+            <input
+              value={String(value[f.name] ?? "")}
+              onChange={(e) => set(f.name, e.target.value)}
+              placeholder={f.placeholder}
+              className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+            />
+          )}
+        </label>
+      ))}
+
+      <div className="flex gap-2 sm:col-span-2">
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saving}
+          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+        >
+          <Save className="h-3.5 w-3.5" /> सेव करें
+        </button>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-accent"
+        >
+          बंद करें
+        </button>
+      </div>
+    </div>
+  );
+}
