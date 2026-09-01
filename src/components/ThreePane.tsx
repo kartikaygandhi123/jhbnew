@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { AdSlot } from "@/components/Ads";
 import { LeftRail, RightRail } from "@/components/Rails";
 
 /**
@@ -19,6 +20,7 @@ export function ThreePane({
     <div className="mx-auto grid max-w-[1400px] gap-5 px-4 py-5 lg:grid-cols-[260px_minmax(0,1fr)_320px]">
       <aside className="order-2 lg:order-1">
         <div className="rail-scroll lg:sticky lg:top-32 lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto">
+          <AdSlot placement="sidebar-left" className="mb-4" />
           {left ?? <LeftRail />}
         </div>
       </aside>
@@ -27,6 +29,7 @@ export function ThreePane({
 
       <aside className="order-3">
         <div className="rail-scroll lg:sticky lg:top-32 lg:max-h-[calc(100vh-9rem)] lg:overflow-y-auto">
+          <AdSlot placement="sidebar-right" className="mb-4" />
           {right ?? <RightRail />}
         </div>
       </aside>

@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogIn, Menu, Search, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 
+import { AdSlot } from "@/components/Ads";
 import { BreakingTicker } from "@/components/BreakingTicker";
 import { useCategories, useSiteSettings } from "@/lib/content";
 
@@ -32,7 +33,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 bg-card">
       {/* Masthead */}
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-3">
         <Link to="/" className="flex min-w-0 items-center">
           {settings?.logo_url ? (
             <img
@@ -46,6 +47,9 @@ export function SiteHeader() {
             <span className="headline text-2xl font-bold">{settings?.site_name ?? "जय हिन्द भारत"}</span>
           )}
         </Link>
+
+        <AdSlot placement="header-center" limit={2} className="hidden min-w-0 flex-1 md:flex" />
+        <AdSlot placement="header-right" limit={1} className="hidden w-[300px] shrink-0 lg:flex" />
       </div>
 
       {/* Dark navigation bar */}
@@ -85,13 +89,6 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          <Link
-            to="/admin"
-            aria-label="एडमिन पैनल"
-            className="hidden items-center gap-1.5 px-4 text-sm font-semibold transition-colors hover:bg-white/10 sm:flex"
-          >
-            <LogIn className="h-4 w-4" /> एडमिन
-          </Link>
           <button
             type="button"
             aria-label="खोजें"
@@ -150,13 +147,6 @@ export function SiteHeader() {
                 {cat.label}
               </Link>
             ))}
-            <Link
-              to="/admin"
-              onClick={() => setOpen(false)}
-              className="rounded-md border border-border px-3 py-2 text-sm font-semibold"
-            >
-              एडमिन पैनल
-            </Link>
           </div>
         </nav>
       )}

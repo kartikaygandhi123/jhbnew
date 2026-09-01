@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { AdSlot, withInFeedAds } from "@/components/Ads";
 import { FeedCard, ListSkeleton, SectionHeading, TileCard } from "@/components/news";
 import { ThreePane } from "@/components/ThreePane";
 import { bySection, useArticles, useSiteSettings, useTrendingTags } from "@/lib/content";
@@ -38,7 +39,8 @@ function Home() {
   return (
     <ThreePane>
       <div className="space-y-6">
-        <section>
+        <AdSlot placement="top" />
+        <section className="text-center">
           <p className="text-xs font-semibold text-primary">
             {settings?.lead_kicker ?? "आज के अहम घटनाक्रम"}
           </p>
@@ -52,7 +54,7 @@ function Home() {
             )}
           </h1>
           {tags && tags.length > 0 && (
-            <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto">
+            <div className="no-scrollbar mt-3 flex justify-center gap-2 overflow-x-auto">
               {tags.map((t) => (
                 <Link
                   key={t.id}
@@ -99,9 +101,10 @@ function Home() {
             <ListSkeleton rows={4} />
           ) : (
             <div className="space-y-3">
-              {feed.map((a) => (
-                <FeedCard key={a.id} article={a} />
-              ))}
+              {withInFeedAds(
+                feed.map((a) => <FeedCard key={a.id} article={a} />),
+                3,
+              )}
             </div>
           )}
         </section>
