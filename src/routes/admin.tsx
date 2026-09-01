@@ -33,6 +33,7 @@ const TABS = [
   { id: "live", label: "लाइव टीवी" },
   { id: "epaper", label: "ई-पेपर" },
   { id: "tags", label: "ट्रेंडिंग टैग" },
+  { id: "ads", label: "विज्ञापन" },
   { id: "settings", label: "साइट सेटिंग्स" },
 ] as const;
 
@@ -210,6 +211,47 @@ function AdminPage() {
               { name: "label", label: "टैग", type: "text" },
               { name: "sort_order", label: "क्रम", type: "number" },
             ]}
+          />
+        )}
+
+        {tab === "ads" && (
+          <AdminTable
+            table="ads"
+            title="विज्ञापन"
+            fields={[
+              { name: "title", label: "पहचान नाम", type: "text" },
+              {
+                name: "placement",
+                label: "जगह",
+                type: "select",
+                options: [
+                  { value: "header-center", label: "हेडर — बीच" },
+                  { value: "header-right", label: "हेडर — दायां कोना" },
+                  { value: "top", label: "मुख्य पेज — ऊपर" },
+                  { value: "in-feed", label: "खबरों के बीच" },
+                  { value: "sidebar-left", label: "बायां साइडबार" },
+                  { value: "sidebar-right", label: "दायां साइडबार" },
+                  { value: "float-right", label: "हॉवरिंग — नीचे दायां" },
+                  { value: "float-left", label: "हॉवरिंग — नीचे बायां" },
+                ],
+              },
+              { name: "image_url", label: "विज्ञापन तस्वीर", type: "image" },
+              { name: "link_url", label: "लिंक (वैकल्पिक)", type: "text", placeholder: "https://" },
+              { name: "alt_text", label: "वैकल्पिक टेक्स्ट", type: "text" },
+              { name: "width", label: "चौड़ाई (px)", type: "number" },
+              { name: "height", label: "ऊंचाई (px)", type: "number" },
+              { name: "dismissible", label: "बंद करने का बटन (हॉवरिंग)", type: "boolean" },
+              { name: "active", label: "चालू", type: "boolean" },
+              { name: "sort_order", label: "क्रम", type: "number" },
+            ]}
+            defaults={{
+              placement: "header-center",
+              width: 728,
+              height: 90,
+              dismissible: true,
+              active: true,
+              sort_order: 100,
+            }}
           />
         )}
 
