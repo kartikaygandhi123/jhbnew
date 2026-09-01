@@ -337,15 +337,15 @@ function SettingsForm() {
       const { error } = await supabase
         .from("site_settings")
         .update({
-          site_name: String(value.site_name ?? ""),
-          logo_url: (value.logo_url as string) || null,
-          breaking_label: String(value.breaking_label ?? ""),
-          ticker_seconds: Number(value.ticker_seconds ?? 40),
-          lead_kicker: String(value.lead_kicker ?? ""),
-          lead_title: String(value.lead_title ?? ""),
-          footer_text: String(value.footer_text ?? ""),
-          contact_email: String(value.contact_email ?? ""),
-          contact_phone: String(value.contact_phone ?? ""),
+          site_name: String(value['site_name'] ?? ""),
+          logo_url: (value['logo_url'] as string) || null,
+          breaking_label: String(value['breaking_label'] ?? ""),
+          ticker_seconds: Number(value['ticker_seconds'] ?? 40),
+          lead_kicker: String(value['lead_kicker'] ?? ""),
+          lead_title: String(value['lead_title'] ?? ""),
+          footer_text: String(value['footer_text'] ?? ""),
+          contact_email: String(value['contact_email'] ?? ""),
+          contact_phone: String(value['contact_phone'] ?? ""),
         })
         .eq("id", "main");
       if (error) throw error;
@@ -379,7 +379,7 @@ function SettingsForm() {
         <span className="mb-1 block font-semibold text-muted-foreground">लोगो</span>
         <span className="flex items-center gap-2">
           <input
-            value={String(value.logo_url ?? "")}
+            value={String(value['logo_url'] ?? "")}
             onChange={(e) => set("logo_url", e.target.value)}
             className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
           />
@@ -406,7 +406,7 @@ function SettingsForm() {
         <span className="mb-1 block font-semibold text-muted-foreground">टिकर स्पीड (सेकंड)</span>
         <input
           type="number"
-          value={Number(value.ticker_seconds ?? 40)}
+          value={Number(value['ticker_seconds'] ?? 40)}
           onChange={(e) => set("ticker_seconds", Number(e.target.value))}
           className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
         />
@@ -419,7 +419,7 @@ function SettingsForm() {
         <span className="mb-1 block font-semibold text-muted-foreground">फुटर टेक्स्ट</span>
         <textarea
           rows={3}
-          value={String(value.footer_text ?? "")}
+          value={String(value['footer_text'] ?? "")}
           onChange={(e) => set("footer_text", e.target.value)}
           className="w-full rounded-md border border-border bg-background p-2 text-sm"
         />
