@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogIn, Menu, Search, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 
+import { AdSlot } from "@/components/Ads";
 import { BreakingTicker } from "@/components/BreakingTicker";
 import { useCategories, useSiteSettings } from "@/lib/content";
 
@@ -88,13 +89,6 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          <Link
-            to="/admin"
-            aria-label="एडमिन पैनल"
-            className="hidden items-center gap-1.5 px-4 text-sm font-semibold transition-colors hover:bg-white/10 sm:flex"
-          >
-            <LogIn className="h-4 w-4" /> एडमिन
-          </Link>
           <button
             type="button"
             aria-label="खोजें"
@@ -153,13 +147,6 @@ export function SiteHeader() {
                 {cat.label}
               </Link>
             ))}
-            <Link
-              to="/admin"
-              onClick={() => setOpen(false)}
-              className="rounded-md border border-border px-3 py-2 text-sm font-semibold"
-            >
-              एडमिन पैनल
-            </Link>
           </div>
         </nav>
       )}
