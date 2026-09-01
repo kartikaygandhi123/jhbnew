@@ -52,17 +52,17 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
   const save = useMutation({
     mutationFn: async (row: Row) => {
       const payload = { ...row };
-      const id = payload.id as string | undefined;
+      const id = payload['id'] as string | undefined;
       if (id) {
-        delete payload.created_at;
-        delete payload.updated_at;
+        delete payload['created_at'];
+        delete payload['updated_at'];
         const { error } = await supabase
           .from(table as never)
           .update(payload as never)
           .eq("id", id);
         if (error) throw error;
       } else {
-        delete payload.id;
+        delete payload['id'];
         const { error } = await supabase.from(table as never).insert(payload as never);
         if (error) throw error;
       }
@@ -127,11 +127,11 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
         {isLoading && <p className="px-3 py-4 text-xs text-muted-foreground">लोड हो रहा है…</p>}
         {(rows ?? []).map((row) => (
           <RowItem
-            key={String(row.id)}
+            key={String(row['id'])}
             row={row}
             fields={fields}
             onSave={(next) => save.mutate(next)}
-            onDelete={() => remove.mutate(String(row.id))}
+            onDelete={() => remove.mutate(String(row['id']))}
             saving={save.isPending}
           />
         ))}
@@ -168,7 +168,7 @@ function RowItem({
           onClick={() => setOpen((v) => !v)}
           className="min-w-0 flex-1 truncate text-left text-sm font-semibold hover:text-primary"
         >
-          {String(row[primary] ?? row.id)}
+          {String(row[primary] ?? row['id'])}
         </button>
         <button
           type="button"

@@ -329,7 +329,7 @@ function SettingsForm() {
     },
   });
   const [form, setForm] = useState<Record<string, unknown> | null>(null);
-  const value = form ?? data ?? null;
+  const value: Record<string, unknown> | null = form ?? (data as Record<string, unknown> | null | undefined) ?? null;
 
   const save = useMutation({
     mutationFn: async () => {
