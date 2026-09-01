@@ -46,6 +46,9 @@ export function SiteHeader() {
             <span className="headline text-2xl font-bold">{settings?.site_name ?? "जय हिन्द भारत"}</span>
           )}
         </Link>
+
+        <AdSlot placement="header-center" limit={2} className="hidden min-w-0 flex-1 md:flex" />
+        <AdSlot placement="header-right" limit={1} className="hidden w-[300px] shrink-0 lg:flex" />
       </div>
 
       {/* Dark navigation bar */}
