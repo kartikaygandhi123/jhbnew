@@ -167,7 +167,7 @@
 }
 
 @utility rail-scroll {
-  overflow-y: auto;
+  overscroll-behavior: contain;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
