@@ -170,3 +170,22 @@ export function useEditionPages(editionId: string | undefined) {
 export function bySection(list: Article[] | undefined, section: string): Article[] {
   return (list ?? []).filter((a) => a.section === section);
 }
+
+export type Ad = Tables["ads"]["Row"];
+
+/** Active advertisement creatives, grouped by placement on the client. */
+export function useAds() {
+  return useQuery({
+    queryKey: ["ads"],
+    staleTime: STALE,
+    queryFn: async (): Promise<Ad[]> => {
+      const { data, error } = await supabase
+        .from("ads")
+        .select("*")
+        .eq("active", true)
+        .order("sort_order");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
