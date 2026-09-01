@@ -32,7 +32,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 bg-card">
       {/* Masthead */}
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-3">
         <Link to="/" className="flex min-w-0 items-center">
           {settings?.logo_url ? (
             <img
