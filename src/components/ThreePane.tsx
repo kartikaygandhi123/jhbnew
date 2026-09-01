@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { AdSlot } from "@/components/Ads";
 import { LeftRail, RightRail } from "@/components/Rails";
 
 /**
