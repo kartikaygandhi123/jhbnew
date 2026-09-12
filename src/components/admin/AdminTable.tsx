@@ -370,3 +370,97 @@ function RecordForm({
     </div>
   );
 }
+
+/** Category dropdown with an inline "add new category" form. */
+function CategoryPicker({ slug, onPick }: { slug: string; onPick: (slug: string, label: string) => void }) {
+  const qc = useQueryClient();
+  const { data: categories } = useCategories();
+  const [adding, setAdding] = useState(false);
+  const [label, setLabel] = useState("");
+  const [newSlug, setNewSlug] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const create = async () => {
+    const l = label.trim();
+    const s = (newSlug.trim() || l.toLowerCase().replace(/\s+/g, "-")).replace(/[^a-z0-9-]/g, "");
+    if (!l || !s) {
+      toast.error("नाम और स्लग भरें");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.from("categories").insert({ label: l, slug: s, sort_order: 100 });
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["categories"] });
+      onPick(s, l);
+      setAdding(false);
+      setLabel("");
+      setNewSlug("");
+      toast.success("श्रेणी जुड़ गई");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "श्रेणी नहीं जुड़ी");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <span className="block">
+      <select
+        value={slug}
+        onChange={(e) => {
+          const found = (categories ?? []).find((c) => c.slug === e.target.value);
+          onPick(e.target.value, found?.label ?? "");
+        }}
+        className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+      >
+        <option value="">— श्रेणी चुनें —</option>
+        {(categories ?? []).map((c) => (
+          <option key={c.slug} value={c.slug}>
+            {c.label}
+          </option>
+        ))}
+      </select>
+
+      {adding ? (
+        <span className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="नई श्रेणी का नाम"
+            className="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-sm"
+          />
+          <input
+            value={newSlug}
+            onChange={(e) => setNewSlug(e.target.value)}
+            placeholder="slug"
+            className="h-9 w-28 rounded-md border border-border bg-background px-2 text-sm"
+          />
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void create()}
+            className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            जोड़ें
+          </button>
+          <button
+            type="button"
+            onClick={() => setAdding(false)}
+            className="h-9 rounded-md border border-border px-3 text-xs font-semibold"
+          >
+            रद्द
+          </button>
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="mt-2 inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-accent"
+        >
+          <Plus className="h-3 w-3" /> नई श्रेणी जोड़ें
+        </button>
+      )}
+    </span>
+  );
+}
