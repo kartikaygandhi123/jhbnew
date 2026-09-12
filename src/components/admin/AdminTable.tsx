@@ -69,10 +69,14 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
   const save = useMutation({
     mutationFn: async (row: Row) => {
       const payload = { ...row };
+      delete payload['created_at'];
+      delete payload['updated_at'];
+      if (api) {
+        await api.save(payload);
+        return;
+      }
       const id = payload['id'] as string | undefined;
       if (id) {
-        delete payload['created_at'];
-        delete payload['updated_at'];
         const { error } = await supabase
           .from(table as never)
           .update(payload as never)
@@ -94,6 +98,10 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
+      if (api) {
+        await api.remove(id);
+        return;
+      }
       const { error } = await supabase
         .from(table as never)
         .delete()
