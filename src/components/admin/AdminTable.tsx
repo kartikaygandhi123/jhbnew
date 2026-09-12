@@ -303,6 +303,17 @@ function RecordForm({
             </select>
           )}
 
+          {f.type === "category" && (
+            <CategoryPicker
+              slug={String(value[f.name] ?? "")}
+              onPick={(slug, label) =>
+                onChange({ ...value, [f.name]: slug, category_label: label })
+              }
+            />
+          )}
+
+
+
           {(f.type === "image" || f.type === "file") && (
             <span className="flex items-center gap-2">
               <input
