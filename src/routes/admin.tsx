@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AdminTable, type FieldDef } from "@/components/admin/AdminTable";
 import { supabase } from "@/integrations/supabase/client";
 import { useEditions } from "@/lib/content";
+import { deletePromo, listAllPromos, savePromo } from "@/lib/promos.functions";
 import { useIsStaff, useSession } from "@/lib/useAuth";
 import { uploadMedia } from "@/lib/upload";
 
@@ -45,8 +46,7 @@ const articleFields: FieldDef[] = [
   { name: "kicker", label: "किकर", type: "text" },
   { name: "summary", label: "सारांश", type: "textarea" },
   { name: "body", label: "पूरी खबर (खाली लाइन से पैराग्राफ अलग करें)", type: "textarea" },
-  { name: "category_label", label: "श्रेणी नाम", type: "text" },
-  { name: "category_slug", label: "श्रेणी स्लग", type: "text" },
+  { name: "category_slug", label: "श्रेणी", type: "category" },
   { name: "place", label: "स्थान", type: "text" },
   { name: "time_label", label: "समय टेक्स्ट", type: "text" },
   { name: "image_url", label: "मुख्य तस्वीर", type: "image" },
@@ -251,6 +251,29 @@ function AdminPage() {
               dismissible: true,
               active: true,
               sort_order: 100,
+            }}
+            api={{
+              list: () => listAllPromos() as Promise<Record<string, unknown>[]>,
+              save: async (row) => {
+                await savePromo({
+                  data: {
+                    ...(row['id'] ? { id: String(row['id']) } : {}),
+                    placement: String(row['placement'] ?? "header-center"),
+                    title: String(row['title'] ?? ""),
+                    image_url: (row['image_url'] as string) || null,
+                    link_url: String(row['link_url'] ?? ""),
+                    alt_text: String(row['alt_text'] ?? ""),
+                    width: Number(row['width'] ?? 728),
+                    height: Number(row['height'] ?? 90),
+                    dismissible: Boolean(row['dismissible']),
+                    active: Boolean(row['active']),
+                    sort_order: Number(row['sort_order'] ?? 100),
+                  },
+                });
+              },
+              remove: async (id) => {
+                await deletePromo({ data: { id } });
+              },
             }}
           />
         )}

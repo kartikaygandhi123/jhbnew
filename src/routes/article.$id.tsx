@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Clock, MapPin } from "lucide-react";
 
 import { RailItem, SectionHeading } from "@/components/news";
+import { ShareBar } from "@/components/ShareBar";
 import { ThreePane } from "@/components/ThreePane";
 import { articleParagraphs, useArticles } from "@/lib/content";
 import { getPublicArticle } from "@/lib/public-content.functions";
@@ -97,6 +98,8 @@ function ArticlePage() {
             <p key={i}>{p}</p>
           ))}
         </div>
+
+        <ShareBar article={article} />
       </article>
 
       {related.length > 0 && (

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import { listActivePromos } from "@/lib/promos.functions";
 import type { Database } from "@/integrations/supabase/types";
 
 type Tables = Database["public"]["Tables"];
@@ -173,19 +174,14 @@ export function bySection(list: Article[] | undefined, section: string): Article
 
 export type Ad = Tables["ads"]["Row"];
 
-/** Active advertisement creatives, grouped by placement on the client. */
+/**
+ * Active advertisement creatives. Fetched through a server function because
+ * browser ad-blockers cancel direct requests to URLs containing "ads".
+ */
 export function useAds() {
   return useQuery({
-    queryKey: ["ads"],
+    queryKey: ["promos", "active"],
     staleTime: STALE,
-    queryFn: async (): Promise<Ad[]> => {
-      const { data, error } = await supabase
-        .from("ads")
-        .select("*")
-        .eq("active", true)
-        .order("sort_order");
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryFn: (): Promise<Ad[]> => listActivePromos(),
   });
 }

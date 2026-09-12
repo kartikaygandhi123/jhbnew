@@ -4,9 +4,18 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useCategories } from "@/lib/content";
 import { uploadMedia } from "@/lib/upload";
 
-export type FieldType = "text" | "textarea" | "number" | "boolean" | "image" | "file" | "select";
+export type FieldType =
+  | "text"
+  | "textarea"
+  | "number"
+  | "boolean"
+  | "image"
+  | "file"
+  | "select"
+  | "category";
 
 export interface FieldDef {
   name: string;
@@ -18,6 +27,12 @@ export interface FieldDef {
 
 type Row = Record<string, unknown>;
 
+export interface TableApi {
+  list: () => Promise<Row[]>;
+  save: (row: Row) => Promise<void>;
+  remove: (id: string) => Promise<void>;
+}
+
 interface Props {
   table: string;
   title: string;
@@ -25,9 +40,10 @@ interface Props {
   orderBy?: string;
   filter?: { column: string; value: string };
   defaults?: Row;
+  api?: TableApi;
 }
 
-export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults }: Props) {
+export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api }: Props) {
   const qc = useQueryClient();
   const [draft, setDraft] = useState<Row | null>(null);
 
@@ -36,6 +52,7 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
   const { data: rows, isLoading } = useQuery({
     queryKey: listKey,
     queryFn: async (): Promise<Row[]> => {
+      if (api) return api.list();
       let q = supabase.from(table as never).select("*");
       if (filter) q = q.eq(filter.column, filter.value);
       const { data, error } = await q.order(orderBy);
@@ -52,10 +69,14 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
   const save = useMutation({
     mutationFn: async (row: Row) => {
       const payload = { ...row };
+      delete payload['created_at'];
+      delete payload['updated_at'];
+      if (api) {
+        await api.save(payload);
+        return;
+      }
       const id = payload['id'] as string | undefined;
       if (id) {
-        delete payload['created_at'];
-        delete payload['updated_at'];
         const { error } = await supabase
           .from(table as never)
           .update(payload as never)
@@ -77,6 +98,10 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
+      if (api) {
+        await api.remove(id);
+        return;
+      }
       const { error } = await supabase
         .from(table as never)
         .delete()
@@ -278,6 +303,17 @@ function RecordForm({
             </select>
           )}
 
+          {f.type === "category" && (
+            <CategoryPicker
+              slug={String(value[f.name] ?? "")}
+              onPick={(slug, label) =>
+                onChange({ ...value, [f.name]: slug, category_label: label })
+              }
+            />
+          )}
+
+
+
           {(f.type === "image" || f.type === "file") && (
             <span className="flex items-center gap-2">
               <input
@@ -332,5 +368,99 @@ function RecordForm({
         </button>
       </div>
     </div>
+  );
+}
+
+/** Category dropdown with an inline "add new category" form. */
+function CategoryPicker({ slug, onPick }: { slug: string; onPick: (slug: string, label: string) => void }) {
+  const qc = useQueryClient();
+  const { data: categories } = useCategories();
+  const [adding, setAdding] = useState(false);
+  const [label, setLabel] = useState("");
+  const [newSlug, setNewSlug] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const create = async () => {
+    const l = label.trim();
+    const s = (newSlug.trim() || l.toLowerCase().replace(/\s+/g, "-")).replace(/[^a-z0-9-]/g, "");
+    if (!l || !s) {
+      toast.error("नाम और स्लग भरें");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.from("categories").insert({ label: l, slug: s, sort_order: 100 });
+      if (error) throw error;
+      await qc.invalidateQueries({ queryKey: ["categories"] });
+      onPick(s, l);
+      setAdding(false);
+      setLabel("");
+      setNewSlug("");
+      toast.success("श्रेणी जुड़ गई");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "श्रेणी नहीं जुड़ी");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <span className="block">
+      <select
+        value={slug}
+        onChange={(e) => {
+          const found = (categories ?? []).find((c) => c.slug === e.target.value);
+          onPick(e.target.value, found?.label ?? "");
+        }}
+        className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+      >
+        <option value="">— श्रेणी चुनें —</option>
+        {(categories ?? []).map((c) => (
+          <option key={c.slug} value={c.slug}>
+            {c.label}
+          </option>
+        ))}
+      </select>
+
+      {adding ? (
+        <span className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="नई श्रेणी का नाम"
+            className="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-sm"
+          />
+          <input
+            value={newSlug}
+            onChange={(e) => setNewSlug(e.target.value)}
+            placeholder="slug"
+            className="h-9 w-28 rounded-md border border-border bg-background px-2 text-sm"
+          />
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void create()}
+            className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+          >
+            जोड़ें
+          </button>
+          <button
+            type="button"
+            onClick={() => setAdding(false)}
+            className="h-9 rounded-md border border-border px-3 text-xs font-semibold"
+          >
+            रद्द
+          </button>
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="mt-2 inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-accent"
+        >
+          <Plus className="h-3 w-3" /> नई श्रेणी जोड़ें
+        </button>
+      )}
+    </span>
   );
 }
