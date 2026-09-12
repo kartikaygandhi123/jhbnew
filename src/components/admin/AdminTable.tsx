@@ -4,9 +4,18 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useCategories } from "@/lib/content";
 import { uploadMedia } from "@/lib/upload";
 
-export type FieldType = "text" | "textarea" | "number" | "boolean" | "image" | "file" | "select";
+export type FieldType =
+  | "text"
+  | "textarea"
+  | "number"
+  | "boolean"
+  | "image"
+  | "file"
+  | "select"
+  | "category";
 
 export interface FieldDef {
   name: string;
@@ -18,6 +27,12 @@ export interface FieldDef {
 
 type Row = Record<string, unknown>;
 
+export interface TableApi {
+  list: () => Promise<Row[]>;
+  save: (row: Row) => Promise<void>;
+  remove: (id: string) => Promise<void>;
+}
+
 interface Props {
   table: string;
   title: string;
@@ -25,9 +40,10 @@ interface Props {
   orderBy?: string;
   filter?: { column: string; value: string };
   defaults?: Row;
+  api?: TableApi;
 }
 
-export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults }: Props) {
+export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api }: Props) {
   const qc = useQueryClient();
   const [draft, setDraft] = useState<Row | null>(null);
 
@@ -36,6 +52,7 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
   const { data: rows, isLoading } = useQuery({
     queryKey: listKey,
     queryFn: async (): Promise<Row[]> => {
+      if (api) return api.list();
       let q = supabase.from(table as never).select("*");
       if (filter) q = q.eq(filter.column, filter.value);
       const { data, error } = await q.order(orderBy);
