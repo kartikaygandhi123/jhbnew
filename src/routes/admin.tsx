@@ -251,6 +251,29 @@ function AdminPage() {
               active: true,
               sort_order: 100,
             }}
+            api={{
+              list: () => listAllPromos() as Promise<Record<string, unknown>[]>,
+              save: async (row) => {
+                await savePromo({
+                  data: {
+                    ...(row['id'] ? { id: String(row['id']) } : {}),
+                    placement: String(row['placement'] ?? "header-center"),
+                    title: String(row['title'] ?? ""),
+                    image_url: (row['image_url'] as string) || null,
+                    link_url: String(row['link_url'] ?? ""),
+                    alt_text: String(row['alt_text'] ?? ""),
+                    width: Number(row['width'] ?? 728),
+                    height: Number(row['height'] ?? 90),
+                    dismissible: Boolean(row['dismissible']),
+                    active: Boolean(row['active']),
+                    sort_order: Number(row['sort_order'] ?? 100),
+                  },
+                });
+              },
+              remove: async (id) => {
+                await deletePromo({ data: { id } });
+              },
+            }}
           />
         )}
 
