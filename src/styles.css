@@ -29,6 +29,10 @@
   --color-headline: var(--headline);
   --color-link: var(--link);
   --color-surface: var(--surface);
+  --color-social-facebook: var(--social-facebook);
+  --color-social-instagram: var(--social-instagram);
+  --color-social-youtube: var(--social-youtube);
+  --color-social-x: var(--social-x);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -81,6 +85,10 @@
   --headline: oklch(0.19 0.01 260);
   --link: oklch(0.53 0.21 27);
   --surface: oklch(0.985 0.002 250);
+  --social-facebook: oklch(0.56 0.21 255);
+  --social-instagram: oklch(0.55 0.22 348);
+  --social-youtube: oklch(0.61 0.25 28);
+  --social-x: oklch(0.22 0.01 260);
   --background: oklch(0.988 0.002 250);
   --foreground: oklch(0.19 0.01 260);
   --card: oklch(1 0 0);
@@ -148,6 +156,10 @@
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+  --social-facebook: oklch(0.72 0.15 250);
+  --social-instagram: oklch(0.72 0.16 345);
+  --social-youtube: oklch(0.7 0.19 28);
+  --social-x: oklch(0.94 0.01 260);
 }
 
 @layer base {

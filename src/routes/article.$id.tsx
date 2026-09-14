@@ -27,10 +27,20 @@ export const Route = createFileRoute("/article/$id")({
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },
-        ...(a.image_url?.startsWith("https://")
+        ...(a.image_url
           ? [
-              { property: "og:image", content: a.image_url },
-              { name: "twitter:image", content: a.image_url },
+              {
+                property: "og:image",
+                content: a.image_url.startsWith("https://")
+                  ? a.image_url
+                  : `https://jhbnew.lovable.app${a.image_url.startsWith("/") ? "" : "/"}${a.image_url}`,
+              },
+              {
+                name: "twitter:image",
+                content: a.image_url.startsWith("https://")
+                  ? a.image_url
+                  : `https://jhbnew.lovable.app${a.image_url.startsWith("/") ? "" : "/"}${a.image_url}`,
+              },
             ]
           : []),
       ],
