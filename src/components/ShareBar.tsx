@@ -136,7 +136,7 @@ export function ShareBar({ article }: { article: Article }) {
         <div className="fixed inset-0 z-[60] grid place-items-center bg-black/70 p-4">
           <div className="max-h-full w-full max-w-sm overflow-y-auto rounded-md bg-card p-3">
             <div className="flex items-center justify-between pb-2">
-              <h3 className="headline text-sm font-bold">स्टेटस के लिए तस्वीर</h3>
+              <h3 className="headline text-sm font-bold">शेयर करने के लिए समाचार तस्वीर</h3>
               <button
                 type="button"
                 aria-label="बंद करें"
@@ -149,7 +149,7 @@ export function ShareBar({ article }: { article: Article }) {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <img src={card.url} alt={article.title} className="w-full rounded-sm border border-border" />
+            <img src={card.url} alt={article.title} className="aspect-square w-full rounded-sm border border-border object-contain" />
             <div className="mt-3 flex gap-2">
               <button
                 type="button"

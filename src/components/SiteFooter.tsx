@@ -1,6 +1,21 @@
 import { Link } from "@tanstack/react-router";
+import { Facebook, Instagram, Youtube } from "lucide-react";
 
 import { useCategories, useSiteSettings } from "@/lib/content";
+
+const socialLinks = [
+  { label: "Facebook", href: "https://www.facebook.com/jaihindbharat", icon: Facebook, className: "text-social-facebook" },
+  { label: "Instagram", href: "https://www.instagram.com/jaihindbharat", icon: Instagram, className: "text-social-instagram" },
+  { label: "YouTube", href: "https://www.youtube.com/@jaihindbharat", icon: Youtube, className: "text-social-youtube" },
+];
+
+function XIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
+      <path d="M18.9 2H22l-6.77 7.74L23.2 22H17l-4.86-6.35L6.59 22H3.48l7.2-8.23L3.03 2H9.4l4.39 5.8L18.9 2Zm-1.09 17.84h1.72L8.46 4.05H6.62l11.19 15.79Z" />
+    </svg>
+  );
+}
 
 export function SiteFooter() {
   const { data: categories } = useCategories();
@@ -38,6 +53,32 @@ export function SiteFooter() {
             वीडियो
           </Link>
         </nav>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="text-xs font-semibold text-muted-foreground">Follow us</span>
+          {socialLinks.map(({ label, href, icon: Icon, className }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+              title={label}
+              className={`grid h-8 w-8 place-items-center rounded-full border border-border bg-background ${className}`}
+            >
+              <Icon className="h-4 w-4" />
+            </a>
+          ))}
+          <a
+            href="https://x.com/jaihindbharat"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="X"
+            title="X"
+            className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-social-x"
+          >
+            <XIcon />
+          </a>
+        </div>
       </div>
       <div className="border-t border-border px-4 py-3 text-center text-[11px] text-muted-foreground">
         © 2026 {settings?.site_name ?? "जय हिन्द भारत"} — सर्वाधिकार सुरक्षित

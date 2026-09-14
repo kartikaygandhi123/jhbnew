@@ -1,6 +1,7 @@
 /**
- * Renders a portrait "share as image" card (1080x1920, WhatsApp-status sized)
- * for an article: site logo, optional header advert, headline, photo and text.
+ * Renders a square news clipping for WhatsApp and social sharing.
+ * The composition mirrors the website: masthead, header advert, article image,
+ * headline, article copy, and a minimal branded footer.
  */
 
 export interface ShareCardInput {
@@ -17,7 +18,7 @@ export interface ShareCardInput {
 }
 
 const W = 1080;
-const H = 1920;
+const H = 1080;
 
 function loadImage(src: string | null): Promise<HTMLImageElement | null> {
   if (!src) return Promise.resolve(null);
@@ -67,7 +68,65 @@ function drawCover(
   ctx.restore();
 }
 
+function drawContain(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+) {
+  const scale = Math.min(w / img.width, h / img.height);
+  const dw = img.width * scale;
+  const dh = img.height * scale;
+  ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+}
+
+function fitLines(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number,
+  startSize: number,
+  minSize: number,
+  family: string,
+) {
+  for (let size = startSize; size >= minSize; size -= 2) {
+    ctx.font = `bold ${String(size)}px ${family}`;
+    const lines = wrap(ctx, text, maxWidth);
+    if (lines.length <= maxLines) return { lines, size };
+  }
+  ctx.font = `bold ${String(minSize)}px ${family}`;
+  const lines = wrap(ctx, text, maxWidth).slice(0, maxLines);
+  const last = lines[maxLines - 1];
+  if (last) lines[maxLines - 1] = `${last.replace(/[.…]+$/, "")}…`;
+  return { lines, size: minSize };
+}
+
+function drawSocialMarks(ctx: CanvasRenderingContext2D, startX: number, y: number) {
+  const marks = [
+    { label: "f", color: "#1877f2", font: "bold 24px Arial" },
+    { label: "◎", color: "#d62976", font: "bold 25px Arial" },
+    { label: "▶", color: "#ff0000", font: "bold 17px Arial" },
+    { label: "X", color: "#111111", font: "bold 19px Arial" },
+  ];
+  marks.forEach((mark, index) => {
+    const x = startX + index * 42;
+    ctx.fillStyle = mark.color;
+    ctx.beginPath();
+    ctx.arc(x, y, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = mark.font;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(mark.label, x, y + 1);
+  });
+  ctx.textBaseline = "alphabetic";
+}
+
 export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
+  await document.fonts?.ready;
   const [logo, photo, ad] = await Promise.all([
     loadImage(input.logoUrl),
     loadImage(input.imageUrl),
@@ -83,80 +142,87 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
 
-  let y = 40;
+  const margin = 34;
+  const mastheadH = ad ? 142 : 112;
+  const logoW = ad ? 290 : 480;
+  const logoH = mastheadH - 30;
 
-  // Masthead
+  // Homepage-style masthead: logo at left and the available advert alongside it.
   if (logo) {
-    const lw = Math.min(760, logo.width);
-    const lh = (logo.height / logo.width) * lw;
-    ctx.drawImage(logo, (W - lw) / 2, y, lw, lh);
-    y += lh + 24;
+    drawContain(ctx, logo, margin, 14, logoW, logoH);
   } else {
     ctx.fillStyle = "#111111";
-    ctx.font = "bold 78px serif";
-    ctx.textAlign = "center";
-    ctx.fillText(input.siteName, W / 2, y + 76);
-    y += 120;
+    ctx.font = "bold 46px 'Noto Sans Devanagari', sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(input.siteName, margin, 78);
+  }
+  if (ad) drawContain(ctx, ad, margin + logoW + 24, 18, W - margin * 2 - logoW - 24, mastheadH - 36);
+  ctx.fillStyle = "#243b73";
+  ctx.fillRect(0, mastheadH, W, 16);
+  ctx.fillStyle = "#c81e1e";
+  ctx.fillRect(0, mastheadH + 16, W, 7);
+
+  let y = mastheadH + 23;
+  const footerH = 58;
+  const contentBottom = H - footerH;
+
+  // Article image leads the clipping, directly under the website header.
+  if (photo) {
+    const photoH = ad ? 410 : 440;
+    drawCover(ctx, photo, 0, y, W, photoH);
+    y += photoH;
   }
 
-  ctx.fillStyle = "#c81e1e";
-  ctx.fillRect(40, y, W - 80, 8);
-  y += 30;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, y, W, contentBottom - y);
+  y += 20;
 
-  // Header advert
-  if (ad) {
-    const ah = 150;
-    drawCover(ctx, ad, 40, y, W - 80, ah);
-    y += ah + 26;
-  }
-
-  // Headline
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#c81e1e";
-  ctx.font = "bold 40px sans-serif";
   const kicker = [input.kicker, input.place].filter(Boolean).join(" • ");
   if (kicker) {
-    ctx.fillText(kicker, W / 2, y + 40);
-    y += 70;
+    ctx.fillStyle = "#c81e1e";
+    ctx.textAlign = "left";
+    ctx.font = "bold 24px 'Noto Sans Devanagari', sans-serif";
+    ctx.fillText(kicker, 44, y + 23);
+    y += 38;
   }
 
   ctx.fillStyle = "#111111";
-  ctx.font = "bold 66px serif";
-  const titleLines = wrap(ctx, input.title, W - 100).slice(0, 5);
-  for (const line of titleLines) {
-    ctx.fillText(line, W / 2, y + 66);
-    y += 86;
-  }
-  y += 18;
-
-  // Photo
-  if (photo) {
-    const ph = 700;
-    drawCover(ctx, photo, 40, y, W - 80, ph);
-    y += ph + 30;
-  }
-
-  // Summary
   ctx.textAlign = "left";
-  ctx.fillStyle = "#222222";
-  ctx.font = "42px serif";
-  const maxY = H - 190;
-  const bodyLines = wrap(ctx, input.summary, W - 100);
+  const titleFit = fitLines(ctx, input.title, W - 88, 3, 48, 36, "'Noto Sans Devanagari', serif");
+  const titleLineH = titleFit.size * 1.32;
+  for (const line of titleFit.lines) {
+    ctx.fillText(line, 44, y + titleFit.size);
+    y += titleLineH;
+  }
+  y += 12;
+
+  ctx.strokeStyle = "#d9d9d9";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(44, y);
+  ctx.lineTo(W - 44, y);
+  ctx.stroke();
+  y += 16;
+
+  ctx.fillStyle = "#292929";
+  ctx.font = "28px 'Noto Sans Devanagari', serif";
+  const bodyLines = wrap(ctx, input.summary, W - 88);
   for (const line of bodyLines) {
-    if (y + 56 > maxY) break;
-    ctx.fillText(line, 50, y + 44);
-    y += 62;
+    if (y + 38 > contentBottom - 12) break;
+    ctx.fillText(line, 44, y + 28);
+    y += 38;
   }
 
-  // Footer
-  ctx.fillStyle = "#c81e1e";
-  ctx.fillRect(0, H - 130, W, 130);
+  // Deliberately small footer: social marks and one visit message only.
   ctx.fillStyle = "#ffffff";
-  ctx.textAlign = "center";
-  ctx.font = "bold 44px sans-serif";
-  ctx.fillText(input.siteUrl, W / 2, H - 72);
-  ctx.font = "32px sans-serif";
-  ctx.fillText(input.timeLabel, W / 2, H - 28);
+  ctx.fillRect(0, H - footerH, W, footerH);
+  ctx.fillStyle = "#c81e1e";
+  ctx.fillRect(0, H - footerH, W, 3);
+  drawSocialMarks(ctx, 62, H - 27);
+  ctx.fillStyle = "#c81e1e";
+  ctx.textAlign = "right";
+  ctx.font = "bold 25px Arial, sans-serif";
+  ctx.fillText("For latest news visit jaihindbharat.com", W - 38, H - 19);
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
