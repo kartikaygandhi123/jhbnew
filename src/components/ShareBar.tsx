@@ -1,5 +1,5 @@
 import { Download, Facebook, ImageIcon, Link2, Send, Share2, Twitter, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { useAds, useSiteSettings, type Article } from "@/lib/content";
@@ -17,7 +17,10 @@ export function ShareBar({ article }: { article: Article }) {
   const [busy, setBusy] = useState(false);
   const [card, setCard] = useState<{ url: string; blob: Blob } | null>(null);
 
-  const url = typeof window === "undefined" ? "" : window.location.href;
+  const [url, setUrl] = useState("");
+  useEffect(() => {
+    setUrl(window.location.href);
+  }, []);
   const text = `${article.title} — ${settings?.site_name ?? "जय हिन्द भारत"}`;
   const enc = encodeURIComponent;
 
