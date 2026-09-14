@@ -1,5 +1,5 @@
 import { Download, Facebook, ImageIcon, Link2, Send, Share2, Twitter, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { useAds, useSiteSettings, type Article } from "@/lib/content";
