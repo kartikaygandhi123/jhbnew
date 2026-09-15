@@ -249,8 +249,12 @@ function RecordForm({
   const [uploading, setUploading] = useState<string | null>(null);
 
   const set = (name: string, v: unknown) => {
-    onChange({ ...value, [name]: v });
+    const field = fields.find((f) => f.name === name);
+    let next: Row = { ...value, [name]: v };
+    if (field?.sideEffect) next = field.sideEffect(next, v);
+    onChange(next);
   };
+
 
   const pick = async (name: string, file: File | undefined, folder: string) => {
     if (!file) return;
