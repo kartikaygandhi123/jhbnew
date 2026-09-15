@@ -50,7 +50,7 @@ interface Props {
 }
 
 
-export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api }: Props) {
+export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api, rowLabel }: Props) {
   const qc = useQueryClient();
   const [draft, setDraft] = useState<Row | null>(null);
 
