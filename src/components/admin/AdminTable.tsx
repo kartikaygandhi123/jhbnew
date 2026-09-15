@@ -318,14 +318,24 @@ function RecordForm({
             </select>
           )}
 
-          {f.type === "category" && (
-            <CategoryPicker
-              slug={String(value[f.name] ?? "")}
-              onPick={(slug, label) =>
-                onChange({ ...value, [f.name]: slug, category_label: label })
-              }
+          {f.type === "date" && (
+            <input
+              type="date"
+              value={String(value[f.name] ?? "")}
+              onChange={(e) => set(f.name, e.target.value)}
+              className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
             />
           )}
+
+          {f.type === "dropdown" && (
+            <DropdownPicker
+              value={String(value[f.name] ?? "")}
+              options={f.options ?? []}
+              onPick={(v) => set(f.name, v)}
+            />
+          )}
+
+
 
 
 
