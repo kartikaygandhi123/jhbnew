@@ -489,3 +489,79 @@ function CategoryPicker({ slug, onPick }: { slug: string; onPick: (slug: string,
     </span>
   );
 }
+
+/** Dropdown that also lets the operator type a brand new option. */
+function DropdownPicker({
+  value,
+  options,
+  onPick,
+}: {
+  value: string;
+  options: { value: string; label: string }[];
+  onPick: (value: string) => void;
+}) {
+  const [extra, setExtra] = useState<string[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [text, setText] = useState("");
+
+  const all = [...options.map((o) => o.value), ...extra];
+  if (value && !all.includes(value)) all.push(value);
+
+  return (
+    <span className="block">
+      <select
+        value={value}
+        onChange={(e) => onPick(e.target.value)}
+        className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+      >
+        <option value="">— चुनें —</option>
+        {all.map((v) => (
+          <option key={v} value={v}>
+            {options.find((o) => o.value === v)?.label ?? v}
+          </option>
+        ))}
+      </select>
+
+      {adding ? (
+        <span className="mt-2 flex items-center gap-2">
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="नया विकल्प"
+            className="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const v = text.trim();
+              if (!v) return;
+              setExtra((list) => [...list, v]);
+              onPick(v);
+              setText("");
+              setAdding(false);
+            }}
+            className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground"
+          >
+            जोड़ें
+          </button>
+          <button
+            type="button"
+            onClick={() => setAdding(false)}
+            className="h-9 rounded-md border border-border px-3 text-xs font-semibold"
+          >
+            रद्द
+          </button>
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="mt-2 inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-accent"
+        >
+          <Plus className="h-3 w-3" /> नया विकल्प जोड़ें
+        </button>
+      )}
+    </span>
+  );
+}
+
