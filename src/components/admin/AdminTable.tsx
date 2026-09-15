@@ -15,6 +15,8 @@ export type FieldType =
   | "image"
   | "file"
   | "select"
+  | "dropdown"
+  | "date"
   | "category";
 
 export interface FieldDef {
@@ -23,6 +25,8 @@ export interface FieldDef {
   type: FieldType;
   options?: { value: string; label: string }[];
   placeholder?: string;
+  /** Lets a field update sibling fields (e.g. a date label or "today" toggle). */
+  sideEffect?: (row: Record<string, unknown>, value: unknown) => Record<string, unknown>;
 }
 
 type Row = Record<string, unknown>;
@@ -41,7 +45,10 @@ interface Props {
   filter?: { column: string; value: string };
   defaults?: Row;
   api?: TableApi;
+  /** Custom text for each row in the list. */
+  rowLabel?: (row: Row) => string;
 }
+
 
 export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api }: Props) {
   const qc = useQueryClient();
