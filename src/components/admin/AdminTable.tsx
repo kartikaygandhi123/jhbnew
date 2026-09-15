@@ -15,6 +15,8 @@ export type FieldType =
   | "image"
   | "file"
   | "select"
+  | "dropdown"
+  | "date"
   | "category";
 
 export interface FieldDef {
@@ -23,6 +25,8 @@ export interface FieldDef {
   type: FieldType;
   options?: { value: string; label: string }[];
   placeholder?: string;
+  /** Lets a field update sibling fields (e.g. a date label or "today" toggle). */
+  sideEffect?: (row: Record<string, unknown>, value: unknown) => Record<string, unknown>;
 }
 
 type Row = Record<string, unknown>;
@@ -41,9 +45,12 @@ interface Props {
   filter?: { column: string; value: string };
   defaults?: Row;
   api?: TableApi;
+  /** Custom text for each row in the list. */
+  rowLabel?: (row: Row) => string;
 }
 
-export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api }: Props) {
+
+export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api, rowLabel }: Props) {
   const qc = useQueryClient();
   const [draft, setDraft] = useState<Row | null>(null);
 
@@ -155,6 +162,7 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
             key={String(row['id'])}
             row={row}
             fields={fields}
+            {...(rowLabel ? { label: rowLabel(row) } : {})}
             onSave={(next) => save.mutate(next)}
             onDelete={() => remove.mutate(String(row['id']))}
             saving={save.isPending}
@@ -171,12 +179,14 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
 function RowItem({
   row,
   fields,
+  label,
   onSave,
   onDelete,
   saving,
 }: {
   row: Row;
   fields: FieldDef[];
+  label?: string;
   onSave: (row: Row) => void;
   onDelete: () => void;
   saving: boolean;
@@ -193,8 +203,9 @@ function RowItem({
           onClick={() => setOpen((v) => !v)}
           className="min-w-0 flex-1 truncate text-left text-sm font-semibold hover:text-primary"
         >
-          {String(row[primary] ?? row['id'])}
+          {label || String(row[primary] || row['id'])}
         </button>
+
         <button
           type="button"
           aria-label="हटाएं"
@@ -238,8 +249,12 @@ function RecordForm({
   const [uploading, setUploading] = useState<string | null>(null);
 
   const set = (name: string, v: unknown) => {
-    onChange({ ...value, [name]: v });
+    const field = fields.find((f) => f.name === name);
+    let next: Row = { ...value, [name]: v };
+    if (field?.sideEffect) next = field.sideEffect(next, v);
+    onChange(next);
   };
+
 
   const pick = async (name: string, file: File | undefined, folder: string) => {
     if (!file) return;
@@ -303,14 +318,24 @@ function RecordForm({
             </select>
           )}
 
-          {f.type === "category" && (
-            <CategoryPicker
-              slug={String(value[f.name] ?? "")}
-              onPick={(slug, label) =>
-                onChange({ ...value, [f.name]: slug, category_label: label })
-              }
+          {f.type === "date" && (
+            <input
+              type="date"
+              value={String(value[f.name] ?? "")}
+              onChange={(e) => set(f.name, e.target.value)}
+              className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
             />
           )}
+
+          {f.type === "dropdown" && (
+            <DropdownPicker
+              value={String(value[f.name] ?? "")}
+              options={f.options ?? []}
+              onPick={(v) => set(f.name, v)}
+            />
+          )}
+
+
 
 
 
@@ -464,3 +489,79 @@ function CategoryPicker({ slug, onPick }: { slug: string; onPick: (slug: string,
     </span>
   );
 }
+
+/** Dropdown that also lets the operator type a brand new option. */
+function DropdownPicker({
+  value,
+  options,
+  onPick,
+}: {
+  value: string;
+  options: { value: string; label: string }[];
+  onPick: (value: string) => void;
+}) {
+  const [extra, setExtra] = useState<string[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [text, setText] = useState("");
+
+  const all = [...options.map((o) => o.value), ...extra];
+  if (value && !all.includes(value)) all.push(value);
+
+  return (
+    <span className="block">
+      <select
+        value={value}
+        onChange={(e) => onPick(e.target.value)}
+        className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+      >
+        <option value="">— चुनें —</option>
+        {all.map((v) => (
+          <option key={v} value={v}>
+            {options.find((o) => o.value === v)?.label ?? v}
+          </option>
+        ))}
+      </select>
+
+      {adding ? (
+        <span className="mt-2 flex items-center gap-2">
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="नया विकल्प"
+            className="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const v = text.trim();
+              if (!v) return;
+              setExtra((list) => [...list, v]);
+              onPick(v);
+              setText("");
+              setAdding(false);
+            }}
+            className="h-9 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground"
+          >
+            जोड़ें
+          </button>
+          <button
+            type="button"
+            onClick={() => setAdding(false)}
+            className="h-9 rounded-md border border-border px-3 text-xs font-semibold"
+          >
+            रद्द
+          </button>
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="mt-2 inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold hover:bg-accent"
+        >
+          <Plus className="h-3 w-3" /> नया विकल्प जोड़ें
+        </button>
+      )}
+    </span>
+  );
+}
+

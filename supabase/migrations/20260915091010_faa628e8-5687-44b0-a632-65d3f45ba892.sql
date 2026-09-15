@@ -1,0 +1,1 @@
+ALTER TABLE public.epaper_editions ADD COLUMN IF NOT EXISTS edition_date date NOT NULL DEFAULT CURRENT_DATE;
