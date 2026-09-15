@@ -179,12 +179,14 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
 function RowItem({
   row,
   fields,
+  label,
   onSave,
   onDelete,
   saving,
 }: {
   row: Row;
   fields: FieldDef[];
+  label?: string;
   onSave: (row: Row) => void;
   onDelete: () => void;
   saving: boolean;
@@ -201,8 +203,9 @@ function RowItem({
           onClick={() => setOpen((v) => !v)}
           className="min-w-0 flex-1 truncate text-left text-sm font-semibold hover:text-primary"
         >
-          {String(row[primary] ?? row['id'])}
+          {label || String(row[primary] || row['id'])}
         </button>
+
         <button
           type="button"
           aria-label="हटाएं"
