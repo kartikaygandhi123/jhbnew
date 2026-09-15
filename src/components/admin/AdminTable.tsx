@@ -162,6 +162,7 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
             key={String(row['id'])}
             row={row}
             fields={fields}
+            {...(rowLabel ? { label: rowLabel(row) } : {})}
             onSave={(next) => save.mutate(next)}
             onDelete={() => remove.mutate(String(row['id']))}
             saving={save.isPending}
