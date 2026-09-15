@@ -157,6 +157,7 @@ export type Database = {
           city: string
           created_at: string
           date_label: string
+          edition_date: string
           id: string
           is_current: boolean
           pdf_url: string | null
@@ -167,6 +168,7 @@ export type Database = {
           city: string
           created_at?: string
           date_label: string
+          edition_date?: string
           id?: string
           is_current?: boolean
           pdf_url?: string | null
@@ -177,6 +179,7 @@ export type Database = {
           city?: string
           created_at?: string
           date_label?: string
+          edition_date?: string
           id?: string
           is_current?: boolean
           pdf_url?: string | null
