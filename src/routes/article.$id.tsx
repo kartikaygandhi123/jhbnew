@@ -33,13 +33,13 @@ export const Route = createFileRoute("/article/$id")({
                 property: "og:image",
                 content: a.image_url.startsWith("https://")
                   ? a.image_url
-                  : `https://jhbnew.lovable.app${a.image_url.startsWith("/") ? "" : "/"}${a.image_url}`,
+                  : `https://jaihindbharat.com${a.image_url.startsWith("/") ? "" : "/"}${a.image_url}`,
               },
               {
                 name: "twitter:image",
                 content: a.image_url.startsWith("https://")
                   ? a.image_url
-                  : `https://jhbnew.lovable.app${a.image_url.startsWith("/") ? "" : "/"}${a.image_url}`,
+                  : `https://jaihindbharat.com${a.image_url.startsWith("/") ? "" : "/"}${a.image_url}`,
               },
             ]
           : []),

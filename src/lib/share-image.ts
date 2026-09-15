@@ -168,7 +168,8 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
   // Article image leads the clipping, directly under the website header.
   if (photo) {
-    const photoH = ad ? 410 : 440;
+    const hasArticleCopy = input.summary.trim().length > 0;
+    const photoH = hasArticleCopy ? (ad ? 410 : 440) : ad ? 520 : 560;
     drawCover(ctx, photo, 0, y, W, photoH);
     y += photoH;
   }
@@ -188,7 +189,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
   ctx.fillStyle = "#111111";
   ctx.textAlign = "left";
-  const titleFit = fitLines(ctx, input.title, W - 88, 3, 48, 36, "'Noto Sans Devanagari', serif");
+  const titleFit = fitLines(ctx, input.title, W - 88, 3, 54, 38, "'Noto Sans Devanagari', serif");
   const titleLineH = titleFit.size * 1.32;
   for (const line of titleFit.lines) {
     ctx.fillText(line, 44, y + titleFit.size);
