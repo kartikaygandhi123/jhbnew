@@ -225,13 +225,9 @@
 
 @utility tricolor-rule {
   height: 3px;
-  background: linear-gradient(
-    to right,
-    var(--color-saffron) 0 33.33%,
-    oklch(1 0 0) 33.33% 66.66%,
-    var(--color-india-green) 66.66% 100%
-  );
+  background: var(--color-primary);
 }
+
 
 @utility no-scrollbar {
   scrollbar-width: none;

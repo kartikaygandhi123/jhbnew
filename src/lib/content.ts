@@ -144,6 +144,7 @@ export function useEditions() {
         .from("epaper_editions")
         .select("*")
         .order("is_current", { ascending: false })
+        .order("edition_date", { ascending: false })
         .order("sort_order");
       if (error) throw error;
       return data ?? [];

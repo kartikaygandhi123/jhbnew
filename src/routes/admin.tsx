@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { AdminTable, type FieldDef } from "@/components/admin/AdminTable";
 import { supabase } from "@/integrations/supabase/client";
 import { useEditions } from "@/lib/content";
+import { makeThumb, renderPdfPages } from "@/lib/epaper-upload";
+import { hindiDate, todayIso } from "@/lib/hindi-date";
 import { deletePromo, listAllPromos, savePromo } from "@/lib/promos.functions";
 import { useIsStaff, useSession } from "@/lib/useAuth";
 import { uploadMedia } from "@/lib/upload";
@@ -39,6 +41,17 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
+
+const AD_PLACEMENTS = [
+  { value: "header-center", label: "हेडर — बीच" },
+  { value: "header-right", label: "हेडर — दायां कोना" },
+  { value: "top", label: "मुख्य पेज — ऊपर" },
+  { value: "in-feed", label: "खबरों के बीच" },
+  { value: "sidebar-left", label: "बायां साइडबार" },
+  { value: "sidebar-right", label: "दायां साइडबार" },
+  { value: "float-right", label: "हॉवरिंग — नीचे दायां" },
+  { value: "float-left", label: "हॉवरिंग — नीचे बायां" },
+];
 
 const articleFields: FieldDef[] = [
   { name: "title", label: "शीर्षक", type: "text" },
@@ -218,23 +231,21 @@ function AdminPage() {
           <AdminTable
             table="ads"
             title="विज्ञापन"
+            rowLabel={(row) => {
+              const place =
+                AD_PLACEMENTS.find((p) => p.value === row['placement'])?.label ?? String(row['placement'] ?? "—");
+              const name = String(row['title'] ?? "").trim();
+              return name ? `${place} — ${name}` : place;
+            }}
             fields={[
               { name: "title", label: "पहचान नाम", type: "text" },
               {
                 name: "placement",
                 label: "जगह",
                 type: "select",
-                options: [
-                  { value: "header-center", label: "हेडर — बीच" },
-                  { value: "header-right", label: "हेडर — दायां कोना" },
-                  { value: "top", label: "मुख्य पेज — ऊपर" },
-                  { value: "in-feed", label: "खबरों के बीच" },
-                  { value: "sidebar-left", label: "बायां साइडबार" },
-                  { value: "sidebar-right", label: "दायां साइडबार" },
-                  { value: "float-right", label: "हॉवरिंग — नीचे दायां" },
-                  { value: "float-left", label: "हॉवरिंग — नीचे बायां" },
-                ],
+                options: AD_PLACEMENTS,
               },
+
               { name: "image_url", label: "विज्ञापन तस्वीर", type: "image" },
               { name: "link_url", label: "लिंक (वैकल्पिक)", type: "text", placeholder: "https://" },
               { name: "alt_text", label: "वैकल्पिक टेक्स्ट", type: "text" },
@@ -284,31 +295,62 @@ function AdminPage() {
   );
 }
 
+const CITY_OPTIONS = [
+  { value: "मुख्य संस्करण", label: "मुख्य संस्करण" },
+  { value: "दिल्ली", label: "दिल्ली" },
+  { value: "लखनऊ", label: "लखनऊ" },
+  { value: "पटना", label: "पटना" },
+  { value: "भोपाल", label: "भोपाल" },
+  { value: "जयपुर", label: "जयपुर" },
+  { value: "रांची", label: "रांची" },
+  { value: "रायपुर", label: "रायपुर" },
+];
+
 function EpaperAdmin() {
   const { data: editions } = useEditions();
   const [editionId, setEditionId] = useState<string | undefined>(undefined);
   const current = editions?.find((e) => e.id === editionId) ?? editions?.[0];
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState("");
 
+  const cityOptions = [
+    ...CITY_OPTIONS,
+    ...(editions ?? [])
+      .map((e) => e.city)
+      .filter((c) => c && !CITY_OPTIONS.some((o) => o.value === c))
+      .map((c) => ({ value: c, label: c })),
+  ];
+
+  const nextPageNo = async (edition: string) => {
+    const { data } = await supabase
+      .from("epaper_pages")
+      .select("page_no")
+      .eq("edition_id", edition)
+      .order("page_no", { ascending: false })
+      .limit(1);
+    return (data?.[0]?.page_no ?? 0) + 1;
+  };
+
+  const addPage = async (edition: string, pageNo: number, image: File, thumb: File) => {
+    const image_url = await uploadMedia(image, `epaper/${edition}`);
+    const thumb_url = await uploadMedia(thumb, `epaper/${edition}/thumbs`);
+    const { error } = await supabase
+      .from("epaper_pages")
+      .insert({ edition_id: edition, page_no: pageNo, image_url, thumb_url });
+    if (error) throw error;
+  };
+
+  // Page images: each upload also gets an automatic thumbnail.
   const bulkUpload = async (files: FileList | null) => {
     if (!files || files.length === 0 || !current) return;
     setBusy(true);
     try {
       const sorted = Array.from(files).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
-      const { data: existing } = await supabase
-        .from("epaper_pages")
-        .select("page_no")
-        .eq("edition_id", current.id)
-        .order("page_no", { ascending: false })
-        .limit(1);
-      let next = (existing?.[0]?.page_no ?? 0) + 1;
-      for (const file of sorted) {
-        const url = await uploadMedia(file, `epaper/${current.id}`);
-        const { error } = await supabase
-          .from("epaper_pages")
-          .insert({ edition_id: current.id, page_no: next, image_url: url });
-        if (error) throw error;
+      let next = await nextPageNo(current.id);
+      for (const [i, file] of sorted.entries()) {
+        setProgress(`${String(i + 1)}/${String(sorted.length)}`);
+        await addPage(current.id, next, file, await makeThumb(file, `${file.name}-thumb.jpg`));
         next += 1;
       }
       toast.success(`${String(sorted.length)} पेज जोड़े गए`);
@@ -316,6 +358,34 @@ function EpaperAdmin() {
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "अपलोड विफल");
     } finally {
+      setProgress("");
+      setBusy(false);
+    }
+  };
+
+  // Whole PDF: every page becomes an image plus a thumbnail in the page list.
+  const pdfUpload = async (file: File | undefined) => {
+    if (!file || !current) return;
+    setBusy(true);
+    try {
+      setProgress("PDF पढ़ा जा रहा है…");
+      const rendered = await renderPdfPages(file, (done, total) => {
+        setProgress(`पेज बन रहे हैं ${String(done)}/${String(total)}`);
+      });
+      const pdfUrlPath = await uploadMedia(file, `epaper/${current.id}`);
+      let next = await nextPageNo(current.id);
+      for (const [i, page] of rendered.entries()) {
+        setProgress(`अपलोड ${String(i + 1)}/${String(rendered.length)}`);
+        await addPage(current.id, next, page.full, page.thumb);
+        next += 1;
+      }
+      await supabase.from("epaper_editions").update({ pdf_url: pdfUrlPath }).eq("id", current.id);
+      toast.success(`PDF से ${String(rendered.length)} पेज जुड़ गए`);
+      void qc.invalidateQueries();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "PDF अपलोड विफल");
+    } finally {
+      setProgress("");
       setBusy(false);
     }
   };
@@ -325,18 +395,40 @@ function EpaperAdmin() {
       <AdminTable
         table="epaper_editions"
         title="ई-पेपर संस्करण"
+        orderBy="edition_date"
+        rowLabel={(row) =>
+          `${String(row['city'] ?? "")} — ${String(row['date_label'] ?? "")}${row['is_current'] ? " • आज का संस्करण" : ""}`
+        }
         fields={[
-          { name: "city", label: "संस्करण / शहर", type: "text" },
-          { name: "date_label", label: "तारीख", type: "text" },
+          { name: "city", label: "संस्करण / शहर", type: "dropdown", options: cityOptions },
+          {
+            name: "edition_date",
+            label: "तारीख (कैलेंडर से चुनें)",
+            type: "date",
+            sideEffect: (row, value) => ({ ...row, date_label: hindiDate(String(value ?? "")) }),
+          },
+          { name: "date_label", label: "तारीख (हिंदी में दिखेगी)", type: "text" },
           { name: "pdf_url", label: "पूरा PDF", type: "file" },
-          { name: "is_current", label: "आज का संस्करण", type: "boolean" },
+          {
+            name: "is_current",
+            label: "आज का संस्करण (साइट पर यही दिखेगा)",
+            type: "boolean",
+            sideEffect: (row, value) =>
+              value ? { ...row, edition_date: todayIso(), date_label: hindiDate(todayIso()) } : row,
+          },
           { name: "sort_order", label: "क्रम", type: "number" },
         ]}
-        defaults={{ is_current: false, sort_order: 100 }}
+        defaults={{
+          city: "मुख्य संस्करण",
+          is_current: false,
+          sort_order: 100,
+          edition_date: todayIso(),
+          date_label: hindiDate(todayIso()),
+        }}
       />
 
       <section className="rounded-md border border-border bg-card p-3">
-        <h2 className="headline text-base font-bold">पेज (तस्वीरें)</h2>
+        <h2 className="headline text-base font-bold">पेज अपलोड</h2>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <select
             value={current?.id ?? ""}
@@ -350,18 +442,30 @@ function EpaperAdmin() {
             ))}
           </select>
           <label className="inline-flex h-9 cursor-pointer items-center rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground">
-            {busy ? "अपलोड हो रहा है…" : "कई पेज अपलोड करें"}
+            पूरा PDF अपलोड करें
+            <input
+              type="file"
+              accept="application/pdf"
+              disabled={busy}
+              className="hidden"
+              onChange={(e) => void pdfUpload(e.target.files?.[0])}
+            />
+          </label>
+          <label className="inline-flex h-9 cursor-pointer items-center rounded-md border border-border px-3 text-xs font-semibold hover:bg-accent">
+            कई पेज (तस्वीरें) अपलोड करें
             <input
               type="file"
               multiple
               accept="image/*"
+              disabled={busy}
               className="hidden"
               onChange={(e) => void bulkUpload(e.target.files)}
             />
           </label>
+          {busy && <span className="text-xs font-semibold text-primary">{progress || "काम चल रहा है…"}</span>}
         </div>
         <p className="mt-2 text-[11px] text-muted-foreground">
-          PDF के पेजों की तस्वीरें (JPG/PNG) क्रम में चुनें — फ़ाइल नाम के अनुसार पेज नंबर लगेंगे।
+          पूरा PDF चुनें — हर पेज अपने आप पेज सूची में तस्वीर और थंबनेल के साथ जुड़ जाएगा। थंबनेल बाद में बदला भी जा सकता है।
         </p>
       </section>
 
@@ -372,16 +476,18 @@ function EpaperAdmin() {
           title={`पेज सूची — ${current.city}`}
           orderBy="page_no"
           filter={{ column: "edition_id", value: current.id }}
+          rowLabel={(row) => `पेज ${String(row['page_no'] ?? "")}`}
           fields={[
             { name: "page_no", label: "पेज नंबर", type: "number" },
             { name: "image_url", label: "पेज तस्वीर", type: "image" },
-            { name: "thumb_url", label: "थंबनेल (वैकल्पिक)", type: "image" },
+            { name: "thumb_url", label: "थंबनेल (अपने आप बनता है, चाहें तो बदलें)", type: "image" },
           ]}
         />
       )}
     </div>
   );
 }
+
 
 function SettingsForm() {
   const qc = useQueryClient();
