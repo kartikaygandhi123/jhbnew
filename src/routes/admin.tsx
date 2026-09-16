@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { AdminTable, type FieldDef } from "@/components/admin/AdminTable";
 import { supabase } from "@/integrations/supabase/client";
 import { useEditions } from "@/lib/content";
+import { makeThumb, renderPdfPages } from "@/lib/epaper-upload";
+import { hindiDate, todayIso } from "@/lib/hindi-date";
 import { deletePromo, listAllPromos, savePromo } from "@/lib/promos.functions";
 import { useIsStaff, useSession } from "@/lib/useAuth";
 import { uploadMedia } from "@/lib/upload";
