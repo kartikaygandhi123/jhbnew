@@ -42,6 +42,17 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
+const AD_PLACEMENTS = [
+  { value: "header-center", label: "हेडर — बीच" },
+  { value: "header-right", label: "हेडर — दायां कोना" },
+  { value: "top", label: "मुख्य पेज — ऊपर" },
+  { value: "in-feed", label: "खबरों के बीच" },
+  { value: "sidebar-left", label: "बायां साइडबार" },
+  { value: "sidebar-right", label: "दायां साइडबार" },
+  { value: "float-right", label: "हॉवरिंग — नीचे दायां" },
+  { value: "float-left", label: "हॉवरिंग — नीचे बायां" },
+];
+
 const articleFields: FieldDef[] = [
   { name: "title", label: "शीर्षक", type: "text" },
   { name: "slug", label: "स्लग (URL)", type: "text", placeholder: "vikas-ki-rajniti" },
