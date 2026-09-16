@@ -168,7 +168,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
   if (photo) {
     const hasArticleCopy = input.summary.trim().length > 0;
-    const photoH = hasArticleCopy ? 470 : 600;
+    const photoH = hasArticleCopy ? 430 : 600;
     drawCover(ctx, photo, 0, y, W, photoH);
     y += photoH;
   }
