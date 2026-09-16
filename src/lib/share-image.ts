@@ -143,11 +143,11 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   ctx.fillRect(0, 0, W, H);
 
   const margin = 34;
-  const mastheadH = ad ? 142 : 112;
-  const logoW = ad ? 290 : 480;
+  // Masthead mirrors the site header: logo on the left, advert space on the right.
+  const mastheadH = 126;
+  const logoW = 330;
   const logoH = mastheadH - 30;
 
-  // Homepage-style masthead: logo at left and the available advert alongside it.
   if (logo) {
     drawContain(ctx, logo, margin, 14, logoW, logoH);
   } else {
@@ -156,63 +156,63 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
     ctx.textAlign = "left";
     ctx.fillText(input.siteName, margin, 78);
   }
-  if (ad) drawContain(ctx, ad, margin + logoW + 24, 18, W - margin * 2 - logoW - 24, mastheadH - 36);
-  ctx.fillStyle = "#243b73";
-  ctx.fillRect(0, mastheadH, W, 16);
-  ctx.fillStyle = "#c81e1e";
-  ctx.fillRect(0, mastheadH + 16, W, 7);
+  if (ad) drawContain(ctx, ad, margin + logoW + 24, 16, W - margin * 2 - logoW - 24, mastheadH - 32);
 
-  let y = mastheadH + 23;
-  const footerH = 58;
+  // Single thin red rule only — no coloured strips.
+  ctx.fillStyle = "#c81e1e";
+  ctx.fillRect(margin, mastheadH, W - margin * 2, 4);
+
+  let y = mastheadH + 4;
+  const footerH = 54;
   const contentBottom = H - footerH;
 
-  // Article image leads the clipping, directly under the website header.
   if (photo) {
     const hasArticleCopy = input.summary.trim().length > 0;
-    const photoH = hasArticleCopy ? (ad ? 410 : 440) : ad ? 520 : 560;
+    const photoH = hasArticleCopy ? 470 : 600;
     drawCover(ctx, photo, 0, y, W, photoH);
     y += photoH;
   }
 
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, y, W, contentBottom - y);
-  y += 20;
+  y += 18;
 
   const kicker = [input.kicker, input.place].filter(Boolean).join(" • ");
   if (kicker) {
     ctx.fillStyle = "#c81e1e";
     ctx.textAlign = "left";
-    ctx.font = "bold 24px 'Noto Sans Devanagari', sans-serif";
-    ctx.fillText(kicker, 44, y + 23);
-    y += 38;
+    ctx.font = "bold 23px 'Noto Sans Devanagari', sans-serif";
+    ctx.fillText(kicker, 44, y + 21);
+    y += 33;
   }
 
   ctx.fillStyle = "#111111";
   ctx.textAlign = "left";
-  const titleFit = fitLines(ctx, input.title, W - 88, 3, 54, 38, "'Noto Sans Devanagari', serif");
-  const titleLineH = titleFit.size * 1.32;
+  const titleFit = fitLines(ctx, input.title, W - 88, 3, 50, 36, "'Noto Sans Devanagari', serif");
+  const titleLineH = titleFit.size * 1.24;
   for (const line of titleFit.lines) {
     ctx.fillText(line, 44, y + titleFit.size);
     y += titleLineH;
   }
-  y += 12;
+  y += 10;
 
-  ctx.strokeStyle = "#d9d9d9";
+  ctx.strokeStyle = "#e2e2e2";
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(44, y);
   ctx.lineTo(W - 44, y);
   ctx.stroke();
-  y += 16;
+  y += 14;
 
   ctx.fillStyle = "#292929";
-  ctx.font = "28px 'Noto Sans Devanagari', serif";
+  ctx.font = "27px 'Noto Sans Devanagari', serif";
   const bodyLines = wrap(ctx, input.summary, W - 88);
   for (const line of bodyLines) {
-    if (y + 38 > contentBottom - 12) break;
-    ctx.fillText(line, 44, y + 28);
-    y += 38;
+    if (y + 36 > contentBottom - 10) break;
+    ctx.fillText(line, 44, y + 26);
+    y += 36;
   }
+
 
   // Deliberately small footer: social marks and one visit message only.
   ctx.fillStyle = "#ffffff";

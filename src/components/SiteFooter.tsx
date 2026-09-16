@@ -4,9 +4,9 @@ import { Facebook, Instagram, Youtube } from "lucide-react";
 import { useCategories, useSiteSettings } from "@/lib/content";
 
 const socialLinks = [
-  { label: "Facebook", href: "https://www.facebook.com/jaihindbharat", icon: Facebook, className: "text-social-facebook" },
-  { label: "Instagram", href: "https://www.instagram.com/jaihindbharat", icon: Instagram, className: "text-social-instagram" },
-  { label: "YouTube", href: "https://www.youtube.com/@jaihindbharat", icon: Youtube, className: "text-social-youtube" },
+  { label: "Facebook", href: "https://www.facebook.com/jaihindbharat", icon: Facebook, className: "bg-social-facebook" },
+  { label: "Instagram", href: "https://www.instagram.com/jaihindbharat", icon: Instagram, className: "bg-social-instagram" },
+  { label: "YouTube", href: "https://www.youtube.com/@jaihindbharat", icon: Youtube, className: "bg-social-youtube" },
 ];
 
 function XIcon() {
