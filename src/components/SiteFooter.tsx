@@ -63,7 +63,7 @@ export function SiteFooter() {
               rel="noopener noreferrer"
               aria-label={label}
               title={label}
-              className={`grid h-8 w-8 place-items-center rounded-full border border-border bg-background ${className}`}
+              className={`grid h-8 w-8 place-items-center rounded-full text-white ${className}`}
             >
               <Icon className="h-4 w-4" />
             </a>
@@ -74,7 +74,7 @@ export function SiteFooter() {
             rel="noopener noreferrer"
             aria-label="X"
             title="X"
-            className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-social-x"
+            className="grid h-8 w-8 place-items-center rounded-full bg-social-x text-white"
           >
             <XIcon />
           </a>
