@@ -220,23 +220,21 @@ function AdminPage() {
           <AdminTable
             table="ads"
             title="विज्ञापन"
+            rowLabel={(row) => {
+              const place =
+                AD_PLACEMENTS.find((p) => p.value === row['placement'])?.label ?? String(row['placement'] ?? "—");
+              const name = String(row['title'] ?? "").trim();
+              return name ? `${place} — ${name}` : place;
+            }}
             fields={[
               { name: "title", label: "पहचान नाम", type: "text" },
               {
                 name: "placement",
                 label: "जगह",
                 type: "select",
-                options: [
-                  { value: "header-center", label: "हेडर — बीच" },
-                  { value: "header-right", label: "हेडर — दायां कोना" },
-                  { value: "top", label: "मुख्य पेज — ऊपर" },
-                  { value: "in-feed", label: "खबरों के बीच" },
-                  { value: "sidebar-left", label: "बायां साइडबार" },
-                  { value: "sidebar-right", label: "दायां साइडबार" },
-                  { value: "float-right", label: "हॉवरिंग — नीचे दायां" },
-                  { value: "float-left", label: "हॉवरिंग — नीचे बायां" },
-                ],
+                options: AD_PLACEMENTS,
               },
+
               { name: "image_url", label: "विज्ञापन तस्वीर", type: "image" },
               { name: "link_url", label: "लिंक (वैकल्पिक)", type: "text", placeholder: "https://" },
               { name: "alt_text", label: "वैकल्पिक टेक्स्ट", type: "text" },
