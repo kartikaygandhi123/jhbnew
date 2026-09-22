@@ -47,7 +47,8 @@ export function ShareBar({ article }: { article: Article }) {
       const headerAds = (ads ?? [])
         .filter((a) => a.placement.startsWith("header") && a.image_url)
         .slice(0, 2)
-        .map((a) => a.image_url);
+        .map((a) => a.image_url)
+        .filter((imageUrl): imageUrl is string => typeof imageUrl === "string" && imageUrl.length > 0);
       const blob = await renderShareCard({
         title: article.title,
         summary: article.summary || article.body.split(/\n{2,}/)[0] || "",
