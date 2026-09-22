@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Bookmark, Clock, Facebook, MoreVertical, Smile } from "lucide-react";
+import { Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
+import logo from "@/assets/jhb-logo-new.png.asset.json";
 import { articleKey, type Article } from "@/lib/content";
 
 export function SectionHeading({ children }: { children: ReactNode }) {
@@ -86,12 +87,13 @@ export function FeedCard({ article }: { article: Article }) {
             <Clock className="h-3 w-3" /> {article.time_label}
           </span>
         </span>
-        <span className="flex items-center gap-3">
-          <Smile className="h-4 w-4" />
-          <Facebook className="h-4 w-4" />
-          <Bookmark className="h-4 w-4" />
-          <MoreVertical className="h-4 w-4" />
-        </span>
+        <Link
+          to="/article/$id"
+          params={{ id: articleKey(article) }}
+          className="shrink-0 font-bold text-primary hover:underline"
+        >
+          Read More...
+        </Link>
       </div>
     </article>
   );
@@ -127,10 +129,9 @@ export function RailItem({ article, withThumb }: { article: Article; withThumb?:
 
 export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="space-y-3">
-      {Array.from({ length: rows }).map((_, i) => (
-        <div key={i} className="h-20 animate-pulse rounded-md bg-muted" />
-      ))}
+    <div className="grid min-h-40 place-items-center rounded-md border border-border bg-card py-6" aria-label="खबरें लोड हो रही हैं">
+      <img src={logo.url} alt="जय हिन्द भारत" width={240} height={160} className="w-28 animate-pulse sm:w-36" />
+      <span className="sr-only">{String(rows)} खबरें लोड हो रही हैं</span>
     </div>
   );
 }

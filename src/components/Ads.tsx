@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAds, type Ad } from "@/lib/content";
 
 /** A single ad creative. Falls back to a labelled placeholder when no image is set. */
-function AdCreative({ ad, className = "" }: { ad: Ad; className?: string }) {
+export function AdCreative({ ad, className = "" }: { ad: Ad; className?: string }) {
   const box = {
     maxWidth: ad.width > 0 ? `${String(ad.width)}px` : undefined,
     aspectRatio: ad.width > 0 && ad.height > 0 ? `${String(ad.width)} / ${String(ad.height)}` : undefined,

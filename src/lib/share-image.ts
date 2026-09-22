@@ -12,7 +12,7 @@ export interface ShareCardInput {
   timeLabel: string;
   imageUrl: string | null;
   logoUrl: string | null;
-  adUrl: string | null;
+  adUrls: string[];
   siteName: string;
   siteUrl: string;
 }
@@ -104,33 +104,50 @@ function fitLines(
 }
 
 function drawSocialMarks(ctx: CanvasRenderingContext2D, startX: number, y: number) {
-  const marks = [
-    { label: "f", color: "#1877f2", font: "bold 24px Arial" },
-    { label: "◎", color: "#d62976", font: "bold 25px Arial" },
-    { label: "▶", color: "#ff0000", font: "bold 17px Arial" },
-    { label: "X", color: "#111111", font: "bold 19px Arial" },
-  ];
+  const marks = ["facebook", "instagram", "youtube", "x"] as const;
   marks.forEach((mark, index) => {
-    const x = startX + index * 42;
-    ctx.fillStyle = mark.color;
+    const x = startX + index * 40;
+    ctx.fillStyle = mark === "facebook" ? "#1877f2" : mark === "instagram" ? "#d62976" : mark === "youtube" ? "#ff0000" : "#111111";
     ctx.beginPath();
-    ctx.arc(x, y, 15, 0, Math.PI * 2);
+    ctx.arc(x, y, 14, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "#ffffff";
-    ctx.font = mark.font;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(mark.label, x, y + 1);
+    if (mark === "facebook") {
+      ctx.font = "bold 23px Arial";
+      ctx.fillText("f", x, y + 2);
+    } else if (mark === "instagram") {
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 7, y - 7, 14, 14);
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x + 4.5, y - 4.5, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (mark === "youtube") {
+      ctx.beginPath();
+      ctx.moveTo(x - 4, y - 6);
+      ctx.lineTo(x + 7, y);
+      ctx.lineTo(x - 4, y + 6);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.font = "bold 17px Arial";
+      ctx.fillText("X", x, y + 1);
+    }
   });
   ctx.textBaseline = "alphabetic";
 }
 
 export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   await document.fonts?.ready;
-  const [logo, photo, ad] = await Promise.all([
+  const [logo, photo, ...ads] = await Promise.all([
     loadImage(input.logoUrl),
     loadImage(input.imageUrl),
-    loadImage(input.adUrl),
+    ...input.adUrls.slice(0, 2).map((url) => loadImage(url)),
   ]);
 
   const canvas = document.createElement("canvas");
@@ -142,21 +159,28 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H);
 
-  const margin = 34;
+  const margin = 12;
   // Masthead mirrors the site header: logo on the left, advert space on the right.
-  const mastheadH = 126;
-  const logoW = 330;
-  const logoH = mastheadH - 30;
+  const mastheadH = 138;
+  const logoW = 365;
+  const logoH = mastheadH - 12;
 
   if (logo) {
-    drawContain(ctx, logo, margin, 14, logoW, logoH);
+    drawContain(ctx, logo, margin, 6, logoW, logoH);
   } else {
     ctx.fillStyle = "#111111";
     ctx.font = "bold 46px 'Noto Sans Devanagari', sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText(input.siteName, margin, 78);
+    ctx.fillText(input.siteName, margin, 84);
   }
-  if (ad) drawContain(ctx, ad, margin + logoW + 24, 16, W - margin * 2 - logoW - 24, mastheadH - 32);
+  const loadedAds = ads.filter((ad): ad is HTMLImageElement => ad !== null);
+  const adStart = margin + logoW + 8;
+  const adAreaW = W - margin - adStart;
+  const adGap = loadedAds.length > 1 ? 6 : 0;
+  const adW = loadedAds.length > 0 ? (adAreaW - adGap * (loadedAds.length - 1)) / loadedAds.length : adAreaW;
+  loadedAds.forEach((ad, index) => {
+    drawContain(ctx, ad, adStart + index * (adW + adGap), 6, adW, mastheadH - 12);
+  });
 
   // Single thin red rule only — no coloured strips.
   ctx.fillStyle = "#c81e1e";

@@ -1,15 +1,10 @@
-import { Download, Facebook, ImageIcon, Link2, Send, Share2, Twitter, X } from "lucide-react";
+import { Download, ImageIcon, Link2, Share2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { useAds, useSiteSettings, type Article } from "@/lib/content";
 import { renderShareCard } from "@/lib/share-image";
-
-const WhatsAppIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
-    <path d="M20.5 3.5A11 11 0 0 0 3.2 17L2 22l5.2-1.2A11 11 0 1 0 20.5 3.5Zm-8.4 17a9 9 0 0 1-4.6-1.3l-.3-.2-3.1.7.7-3-.2-.3A9 9 0 1 1 12.1 20.5Zm5-6.6c-.3-.1-1.6-.8-1.9-.9s-.4-.1-.6.1-.7.9-.8 1-.3.2-.6.1a7.4 7.4 0 0 1-3.6-3.2c-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5s-.6-1.4-.8-1.9-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3A3 3 0 0 0 6.8 11a5.2 5.2 0 0 0 1.1 2.7 11.9 11.9 0 0 0 4.6 4 5.3 5.3 0 0 0 3.2.7 2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.6-.3Z" />
-  </svg>
-);
+import { FacebookBrandIcon, TelegramBrandIcon, WhatsAppBrandIcon, XBrandIcon } from "@/components/SocialIcons";
 
 export function ShareBar({ article }: { article: Article }) {
   const { data: settings } = useSiteSettings();
@@ -25,28 +20,35 @@ export function ShareBar({ article }: { article: Article }) {
   const enc = encodeURIComponent;
 
   const links = [
-    { label: "WhatsApp", icon: <WhatsAppIcon />, href: `https://wa.me/?text=${enc(`${text} ${url}`)}` },
+    { label: "WhatsApp", icon: <WhatsAppBrandIcon className="h-5 w-5" />, href: `https://wa.me/?text=${enc(`${text} ${url}`)}`, className: "bg-social-whatsapp" },
     {
       label: "Facebook",
-      icon: <Facebook className="h-4 w-4" />,
+      icon: <FacebookBrandIcon className="h-5 w-5" />,
       href: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
+      className: "bg-social-facebook",
     },
     {
       label: "X",
-      icon: <Twitter className="h-4 w-4" />,
+      icon: <XBrandIcon className="h-4 w-4" />,
       href: `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`,
+      className: "bg-social-x",
     },
     {
       label: "Telegram",
-      icon: <Send className="h-4 w-4" />,
+      icon: <TelegramBrandIcon className="h-5 w-5" />,
       href: `https://t.me/share/url?url=${enc(url)}&text=${enc(text)}`,
+      className: "bg-social-telegram",
     },
   ];
 
   const makeCard = async () => {
     setBusy(true);
     try {
-      const headerAd = (ads ?? []).find((a) => a.placement.startsWith("header") && a.image_url);
+      const headerAds = (ads ?? [])
+        .filter((a) => a.placement.startsWith("header") && a.image_url)
+        .slice(0, 2)
+        .map((a) => a.image_url)
+        .filter((imageUrl): imageUrl is string => typeof imageUrl === "string" && imageUrl.length > 0);
       const blob = await renderShareCard({
         title: article.title,
         summary: article.summary || article.body.split(/\n{2,}/)[0] || "",
@@ -55,7 +57,7 @@ export function ShareBar({ article }: { article: Article }) {
         timeLabel: article.time_label,
         imageUrl: article.image_url,
         logoUrl: settings?.logo_url ?? null,
-        adUrl: headerAd?.image_url ?? null,
+        adUrls: headerAds,
         siteName: settings?.site_name ?? "जय हिन्द भारत",
         siteUrl: typeof window === "undefined" ? "" : window.location.host,
       });
@@ -103,7 +105,7 @@ export function ShareBar({ article }: { article: Article }) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`${l.label} पर शेयर करें`}
-            className="grid h-9 w-9 place-items-center rounded-full border border-border text-foreground hover:bg-accent"
+            className={`grid h-9 w-9 place-items-center rounded-full text-primary-foreground transition-opacity hover:opacity-85 ${l.className}`}
           >
             {l.icon}
           </a>

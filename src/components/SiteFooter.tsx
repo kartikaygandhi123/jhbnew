@@ -1,21 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Facebook, Instagram, Youtube } from "lucide-react";
-
 import { useCategories, useSiteSettings } from "@/lib/content";
+import { FacebookBrandIcon, InstagramBrandIcon, XBrandIcon, YoutubeBrandIcon } from "@/components/SocialIcons";
 
 const socialLinks = [
-  { label: "Facebook", href: "https://www.facebook.com/jaihindbharat", icon: Facebook, className: "bg-social-facebook" },
-  { label: "Instagram", href: "https://www.instagram.com/jaihindbharat", icon: Instagram, className: "bg-social-instagram" },
-  { label: "YouTube", href: "https://www.youtube.com/@jaihindbharat", icon: Youtube, className: "bg-social-youtube" },
+  { label: "Facebook", href: "https://www.facebook.com/jaihindbharat", icon: FacebookBrandIcon, className: "bg-social-facebook" },
+  { label: "Instagram", href: "https://www.instagram.com/jaihindbharat", icon: InstagramBrandIcon, className: "bg-social-instagram" },
+  { label: "YouTube", href: "https://www.youtube.com/@jaihindbharat", icon: YoutubeBrandIcon, className: "bg-social-youtube" },
 ];
-
-function XIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor" aria-hidden="true">
-      <path d="M18.9 2H22l-6.77 7.74L23.2 22H17l-4.86-6.35L6.59 22H3.48l7.2-8.23L3.03 2H9.4l4.39 5.8L18.9 2Zm-1.09 17.84h1.72L8.46 4.05H6.62l11.19 15.79Z" />
-    </svg>
-  );
-}
 
 export function SiteFooter() {
   const { data: categories } = useCategories();
@@ -63,7 +54,7 @@ export function SiteFooter() {
               rel="noopener noreferrer"
               aria-label={label}
               title={label}
-              className={`grid h-8 w-8 place-items-center rounded-full text-white ${className}`}
+              className={`grid h-8 w-8 place-items-center rounded-full text-primary-foreground ${className}`}
             >
               <Icon className="h-4 w-4" />
             </a>
@@ -74,9 +65,9 @@ export function SiteFooter() {
             rel="noopener noreferrer"
             aria-label="X"
             title="X"
-            className="grid h-8 w-8 place-items-center rounded-full bg-social-x text-white"
+            className="grid h-8 w-8 place-items-center rounded-full bg-social-x text-primary-foreground"
           >
-            <XIcon />
+            <XBrandIcon className="h-4 w-4" />
           </a>
         </div>
       </div>

@@ -2,9 +2,9 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 
-import { AdSlot } from "@/components/Ads";
+import { AdCreative, AdSlot } from "@/components/Ads";
 import { BreakingTicker } from "@/components/BreakingTicker";
-import { useCategories, useSiteSettings } from "@/lib/content";
+import { useAds, useCategories, useSiteSettings } from "@/lib/content";
 
 const navLinks = [
   { to: "/", label: "होम" },
@@ -20,6 +20,8 @@ export function SiteHeader() {
   const navigate = useNavigate();
   const { data: categories } = useCategories();
   const { data: settings } = useSiteSettings();
+  const { data: ads } = useAds();
+  const mobileHeaderAds = (ads ?? []).filter((ad) => ad.placement.startsWith("header")).slice(0, 2);
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +35,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 bg-card">
       {/* Masthead */}
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-3">
+      <div className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2 sm:px-4 sm:py-3 md:flex md:gap-4">
         <Link to="/" className="flex min-w-0 items-center">
           {settings?.logo_url ? (
             <img
@@ -48,6 +50,13 @@ export function SiteHeader() {
           )}
         </Link>
 
+        {mobileHeaderAds.length > 0 ? (
+          <div className={`col-span-2 grid min-w-0 items-center gap-1.5 md:hidden ${mobileHeaderAds.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+            {mobileHeaderAds.map((ad) => (
+              <AdCreative key={ad.id} ad={ad} className="max-h-20 overflow-hidden" />
+            ))}
+          </div>
+        ) : null}
         <AdSlot placement="header-center" limit={2} className="hidden min-w-0 flex-1 md:flex" />
         <AdSlot placement="header-right" limit={1} className="hidden w-[300px] shrink-0 lg:flex" />
       </div>
