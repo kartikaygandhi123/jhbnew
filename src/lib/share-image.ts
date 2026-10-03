@@ -167,7 +167,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   const margin = 12;
   // Masthead mirrors the site header: logo on the left, advert space on the right.
   const mastheadH = 138;
-  const logoW = 365;
+  const logoW = 218;
   const logoH = mastheadH - 12;
 
   if (logo) {
@@ -197,7 +197,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
   if (photo) {
     const hasArticleCopy = input.summary.trim().length > 0;
-    const photoH = hasArticleCopy ? 430 : 600;
+    const photoH = !hasArticleCopy || input.summary.trim().length < 180 ? 590 : input.summary.trim().length < 320 ? 510 : 430;
     drawCover(ctx, photo, 0, y, W, photoH);
     y += photoH;
   }
