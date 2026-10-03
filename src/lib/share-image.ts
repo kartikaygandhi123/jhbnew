@@ -120,7 +120,9 @@ function drawSocialMarks(ctx: CanvasRenderingContext2D, startX: number, y: numbe
     } else if (mark === "instagram") {
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 2;
-      ctx.strokeRect(x - 7, y - 7, 14, 14);
+      ctx.beginPath();
+      ctx.roundRect(x - 8, y - 8, 16, 16, 4);
+      ctx.stroke();
       ctx.beginPath();
       ctx.arc(x, y, 4, 0, Math.PI * 2);
       ctx.stroke();
@@ -135,8 +137,11 @@ function drawSocialMarks(ctx: CanvasRenderingContext2D, startX: number, y: numbe
       ctx.closePath();
       ctx.fill();
     } else {
-      ctx.font = "bold 17px Arial";
-      ctx.fillText("X", x, y + 1);
+      ctx.save();
+      ctx.translate(x - 9, y - 9);
+      ctx.scale(0.75, 0.75);
+      ctx.fill(new Path2D("M18.9 2H22l-6.77 7.74L23.2 22H17l-4.86-6.35L6.59 22H3.48l7.2-8.23L3.03 2H9.4l4.39 5.8L18.9 2Zm-1.09 17.84h1.72L8.46 4.05H6.62l11.19 15.79Z"));
+      ctx.restore();
     }
   });
   ctx.textBaseline = "alphabetic";
@@ -162,7 +167,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   const margin = 12;
   // Masthead mirrors the site header: logo on the left, advert space on the right.
   const mastheadH = 138;
-  const logoW = 365;
+  const logoW = 218;
   const logoH = mastheadH - 12;
 
   if (logo) {
@@ -192,7 +197,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
   if (photo) {
     const hasArticleCopy = input.summary.trim().length > 0;
-    const photoH = hasArticleCopy ? 430 : 600;
+    const photoH = !hasArticleCopy || input.summary.trim().length < 180 ? 590 : input.summary.trim().length < 320 ? 510 : 430;
     drawCover(ctx, photo, 0, y, W, photoH);
     y += photoH;
   }
