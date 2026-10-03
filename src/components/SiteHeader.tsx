@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { AdCreative, AdSlot } from "@/components/Ads";
 import { BreakingTicker } from "@/components/BreakingTicker";
+import logo from "@/assets/jhb-logo-new.png.asset.json";
 import { useAds, useCategories, useSiteSettings } from "@/lib/content";
 
 const navLinks = [
@@ -37,17 +38,13 @@ export function SiteHeader() {
       {/* Masthead */}
       <div className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2 sm:px-4 sm:py-3 md:flex md:gap-4">
         <Link to="/" className="flex min-w-0 items-center">
-          {settings?.logo_url ? (
-            <img
-              src={settings.logo_url}
-              alt={settings.site_name}
-              width={520}
-              height={348}
-              className="h-14 w-auto sm:h-20"
-            />
-          ) : (
-            <span className="headline text-2xl font-bold">{settings?.site_name ?? "जय हिन्द भारत"}</span>
-          )}
+          <img
+            src={settings?.logo_url || logo.url}
+            alt={settings?.site_name || "जय हिन्द भारत"}
+            width={520}
+            height={348}
+            className="h-14 w-auto sm:h-20"
+          />
         </Link>
 
         {mobileHeaderAds.length > 0 ? (
