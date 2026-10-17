@@ -2,13 +2,21 @@ import { defineConfig } from '@lovable.dev/vite-tanstack-config';
 import { fileURLToPath } from 'node:url';
 
 const local = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+const backendUrl = process.env['VITE_SUPABASE_URL'];
+const publishableKey = process.env['VITE_SUPABASE_PUBLISHABLE_KEY'];
+if (!backendUrl || !publishableKey) throw new Error('Set external VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY before building for VPS');
 
 // Separate production target: the editor continues using vite.config.ts unchanged.
 export default defineConfig({
+  envDefine: false,
   nitro: { preset: 'node-server' },
   tanstackStart: { server: { entry: 'server' } },
   vite: {
-    define: { 'import.meta.env.VITE_EXTERNAL_HOSTING': JSON.stringify('true') },
+    define: {
+      'import.meta.env.VITE_EXTERNAL_HOSTING': JSON.stringify('true'),
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(backendUrl),
+      'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(publishableKey),
+    },
     resolve: { alias: [
       { find: /^@\/integrations\/supabase\/client$/, replacement: local('./src/lib/external-client.ts') },
       { find: /^@\/integrations\/supabase\/auth-attacher$/, replacement: local('./src/lib/external-auth-attacher.ts') },

@@ -1,8 +1,8 @@
 # External hosting migration
 
-- [ ] Transfer schema, content, staff identities, and media; verify destination.
-- [ ] Preserve existing UI with external backend/auth configuration.
-- [ ] Add cached twice-daily YouTube videos and automatic live detection.
-- [ ] Add repeatable GitHub-to-VPS deployment, TLS/proxy configuration, and operations guide.
-- [ ] Test application and migration outcomes.
-- [ ] VPS installation and domain cutover (requires VPS access).
+- [ ] Transfer schema, content, staff identities, and media; destination database login rejected and API URL returns 404.
+- [x] Add opt-in external backend/auth configuration without switching the current site.
+- [x] Add cached twice-daily YouTube videos and automatic live detection; first provider refresh awaits valid destination.
+- [x] Add repeatable GitHub-to-VPS deployment, TLS/proxy configuration, and operations guide.
+- [ ] Verify external production build, staff editing and migration outcomes; destination unavailable.
+- [ ] VPS installation, workflow activation and domain cutover; requires VPS access and GitHub secrets.

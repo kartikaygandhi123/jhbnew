@@ -15,7 +15,15 @@ export const Route = createFileRoute("/article/$id")({
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "खबर उपलब्ध नहीं — जय हिन्द भारत" }, { name: "robots", content: "noindex" }] };
+      return { meta: [
+        { title: "खबर उपलब्ध नहीं — जय हिन्द भारत" },
+        { name: "description", content: "यह खबर उपलब्ध नहीं है। जय हिन्द भारत की ताजा खबरें पढ़ें।" },
+        { property: "og:title", content: "खबर उपलब्ध नहीं — जय हिन्द भारत" },
+        { property: "og:description", content: "जय हिन्द भारत की ताजा हिंदी खबरें।" },
+        { property: "og:type", content: "article" },
+        { name: "twitter:card", content: "summary" },
+        { name: "robots", content: "noindex" },
+      ] };
     }
     const a = loaderData.article;
     const desc = (a.summary || a.title).slice(0, 155);
