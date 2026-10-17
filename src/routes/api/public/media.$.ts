@@ -9,7 +9,7 @@ export const Route = createFileRoute("/api/public/media/$")({
     handlers: {
       GET: async ({ params }) => {
         const path = params._splat ?? "";
-        if (!path || path.includes("..")) {
+        if (!path || path.includes("..") || path.startsWith('/') || path.includes('\\')) {
           return new Response("Not found", { status: 404 });
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -20,7 +20,8 @@ export const Route = createFileRoute("/api/public/media/$")({
         return new Response(await data.arrayBuffer(), {
           headers: {
             "content-type": data.type || "application/octet-stream",
-            "cache-control": "public, max-age=31536000, immutable",
+            "cache-control": path === 'youtube/cache.json' ? 'public, max-age=300, stale-while-revalidate=600' : "public, max-age=31536000, immutable",
+            "x-content-type-options": "nosniff",
           },
         });
       },
