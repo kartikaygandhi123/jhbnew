@@ -1,0 +1,15 @@
+[Unit]
+Description=Refresh Jai Hind Bharat YouTube cache
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=jhb
+Group=jhb
+WorkingDirectory=/srv/jhb/current
+EnvironmentFile=/etc/jhb/site.env
+ExecStart=/usr/bin/node scripts/refresh-youtube.mjs
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true

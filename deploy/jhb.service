@@ -1,0 +1,25 @@
+[Unit]
+Description=Jai Hind Bharat news website
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jhb
+Group=jhb
+WorkingDirectory=/srv/jhb/current
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=3000
+EnvironmentFile=/etc/jhb/site.env
+ExecStart=/usr/bin/node .output/server/index.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+MemoryMax=2G
+
+[Install]
+WantedBy=multi-user.target
