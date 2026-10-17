@@ -5,7 +5,7 @@ import { FacebookBrandIcon, InstagramBrandIcon, XBrandIcon, YoutubeBrandIcon } f
 const socialLinks = [
   {
     label: "Facebook",
-    href: "https://www.facebook.com/jaihindbharathindi",
+    href: "https://www.facebook.com/61593525603116",
     icon: FacebookBrandIcon,
     className: "bg-social-facebook",
   },
