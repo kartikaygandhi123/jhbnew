@@ -118,7 +118,15 @@ export function useVideos() {
         .eq("published", true)
         .order("sort_order");
       if (error) throw error;
-      return data ?? [];
+      if (import.meta.env['VITE_EXTERNAL_HOSTING'] !== 'true') return data ?? [];
+      try {
+        const response = await fetch('/api/public/media/youtube/cache.json');
+        if (!response.ok) return data ?? [];
+        const cache = await response.json() as { videos?: Video[] };
+        const manual = data ?? [];
+        const ids = new Set(manual.map(v => v.youtube_id));
+        return [...manual, ...(cache.videos ?? []).filter(v => !ids.has(v.youtube_id))];
+      } catch { return data ?? []; }
     },
   });
 }
@@ -130,6 +138,15 @@ export function useLiveChannels() {
     queryFn: async (): Promise<LiveChannel[]> => {
       const { data, error } = await supabase.from("live_channels").select("*").order("sort_order");
       if (error) throw error;
+      if (import.meta.env['VITE_EXTERNAL_HOSTING'] === 'true') {
+        try {
+          const response = await fetch('/api/public/media/youtube/cache.json');
+          if (response.ok) {
+            const cache = await response.json() as { broadcast?: { youtube_id: string; is_live: boolean; title: string } };
+            if (cache.broadcast) return [{ id: 'youtube-automatic', name: 'जय हिन्द भारत', youtube_id: cache.broadcast.youtube_id, is_live: cache.broadcast.is_live, description: cache.broadcast.title, sort_order: -1, created_at: '', updated_at: '' }, ...(data ?? [])];
+          }
+        } catch { /* Keep manually configured channels available. */ }
+      }
       return data ?? [];
     },
   });
