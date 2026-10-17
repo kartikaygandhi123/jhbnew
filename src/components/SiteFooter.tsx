@@ -3,9 +3,24 @@ import { useCategories, useSiteSettings } from "@/lib/content";
 import { FacebookBrandIcon, InstagramBrandIcon, XBrandIcon, YoutubeBrandIcon } from "@/components/SocialIcons";
 
 const socialLinks = [
-  { label: "Facebook", href: "https://www.facebook.com/jaihindbharat", icon: FacebookBrandIcon, className: "bg-social-facebook" },
-  { label: "Instagram", href: "https://www.instagram.com/jaihindbharat", icon: InstagramBrandIcon, className: "bg-social-instagram" },
-  { label: "YouTube", href: "https://www.youtube.com/@jaihindbharat", icon: YoutubeBrandIcon, className: "bg-social-youtube" },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/jaihindbharathindi",
+    icon: FacebookBrandIcon,
+    className: "bg-social-facebook",
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/jaihindbharathindi",
+    icon: InstagramBrandIcon,
+    className: "bg-social-instagram",
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@jaihindbharatnews",
+    icon: YoutubeBrandIcon,
+    className: "bg-social-youtube",
+  },
 ];
 
 export function SiteFooter() {
@@ -18,13 +33,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-[1400px] flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           {settings?.logo_url ? (
-            <img
-              src={settings.logo_url}
-              alt={settings.site_name}
-              width={180}
-              height={120}
-              className="h-10 w-auto"
-            />
+            <img src={settings.logo_url} alt={settings.site_name} width={180} height={120} className="h-10 w-auto" />
           ) : null}
           <p className="text-xs text-muted-foreground">{settings?.footer_text}</p>
         </div>
