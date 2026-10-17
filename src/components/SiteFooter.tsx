@@ -69,7 +69,7 @@ export function SiteFooter() {
             </a>
           ))}
           <a
-            href="https://x.com/jaihindbharat"
+            href="https://x.com/jaihindbharathindi"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="X"
