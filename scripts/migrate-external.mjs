@@ -39,7 +39,7 @@ async function migrate() {
     if(!marked) {
       const dump=spawnSync('pg_dump',['--schema-only','--schema=public','--no-owner','--no-comments'],{encoding:'utf8',maxBuffer:20*1024*1024});
       if(dump.status!==0) throw new Error('Schema export failed; source PG connection must match source database');
-      const schema=dump.stdout.split('\n').filter(line=>!line.startsWith('\\')).join('\n');
+      const schema=dump.stdout.split('\n').filter(line=>!line.startsWith('\\') && !/^CREATE SCHEMA public;/.test(line)).join('\n');
       await destination.begin(async tx=>{
         await tx.unsafe(schema);
         await tx.unsafe(`CREATE TABLE public.jhb_migration_state(id text primary key, completed_at timestamptz); GRANT ALL ON public.jhb_migration_state TO service_role; ALTER TABLE public.jhb_migration_state ENABLE ROW LEVEL SECURITY;`);
