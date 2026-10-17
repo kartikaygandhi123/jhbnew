@@ -1,6 +1,6 @@
 # External hosting migration
 
-- [ ] Transfer schema, content, staff identities, and media; destination database login rejected and API URL returns 404.
+- [ ] Transfer schema, content, staff identities, and media; destination API access now works, but database login is still rejected.
 - [x] Add opt-in external backend/auth configuration without switching the current site.
 - [x] Add cached twice-daily YouTube videos and automatic live detection; first provider refresh awaits valid destination.
 - [x] Add repeatable GitHub-to-VPS deployment, TLS/proxy configuration, and operations guide.

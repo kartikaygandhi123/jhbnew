@@ -4,7 +4,7 @@ The current Lovable preview/live site is deliberately unchanged until a successf
 
 ## Current blockers
 
-The saved destination database connection rejected authentication. The saved project URL returned 404 for both auth settings and storage. Correct these securely before migration. No database/content/media copy or DNS cutover has succeeded yet. VPS access and GitHub deployment credentials have not been supplied. Google OAuth requires a Google client ID/secret configured on the user-owned project. YouTube API access successfully resolved the requested channel; the first scheduled cache write still requires working destination storage.
+The destination API URL was corrected and both auth settings and storage now respond successfully. The destination database connection still rejects authentication; correct its password/connection string securely before migration. No database/content/media copy or DNS cutover has succeeded yet. VPS access and GitHub deployment credentials have not been supplied. Google OAuth requires a Google client ID/secret configured on the user-owned project. YouTube API access successfully resolved the requested channel; the first scheduled cache write still requires working destination storage.
 
 ## 1. Validate and copy content
 
