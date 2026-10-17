@@ -62,12 +62,19 @@ async function migrate() {
       const created=await targetAdmin.storage.createBucket('media',{public:false,fileSizeLimit:104857600});
       if(created.error) throw new Error('Destination media bucket creation failed');
     }
+    const storagePolicies=await source`select polname,polcmd,pg_get_expr(polqual,polrelid) as using_expr,pg_get_expr(polwithcheck,polrelid) as check_expr, array(select rolname from pg_roles where oid=any(polroles)) as roles from pg_policy where polrelid='storage.objects'::regclass`;
+    const commands={r:'SELECT',a:'INSERT',w:'UPDATE',d:'DELETE','*':'ALL'};
+    const quote=name=>`"${name.replaceAll('"','""')}"`;
+    for(const policy of storagePolicies.filter(p=>(p.using_expr??p.check_expr??'').includes("'media'"))) {
+      const present=await destination`select 1 from pg_policy where polrelid='storage.objects'::regclass and polname=${policy.polname}`;
+      if(!present.length) await destination.unsafe(`CREATE POLICY ${quote(policy.polname)} ON storage.objects FOR ${commands[policy.polcmd]} TO ${policy.roles.length?policy.roles.map(quote).join(','):'PUBLIC'} ${policy.using_expr?`USING (${policy.using_expr})`:''} ${policy.check_expr?`WITH CHECK (${policy.check_expr})`:''}`);
+    }
     const copies=new Map();
     async function copy(path, bytes, type) {
       const uploaded=await targetAdmin.storage.from('media').upload(path,bytes,{upsert:true,contentType:type||'application/octet-stream',cacheControl:'31536000'});
       if(uploaded.error) throw new Error('Media transfer failed');
       const downloaded=await targetAdmin.storage.from('media').download(path);
-      if(downloaded.error || !downloaded.data || downloaded.data.size!==bytes.size) throw new Error('Transferred media verification failed');
+      if(downloaded.error || !downloaded.data || downloaded.data.size!==bytes.size || !Buffer.from(await downloaded.data.arrayBuffer()).equals(Buffer.from(await bytes.arrayBuffer()))) throw new Error('Transferred media verification failed');
     }
     async function copyAsset(value, asset) {
       if(copies.has(value)) return copies.get(value);

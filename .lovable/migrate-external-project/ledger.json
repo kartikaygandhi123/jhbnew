@@ -1,17 +1,17 @@
 {
   "target": "User-owned backend and Hostinger KVM 2",
   "capabilities": [
-    {"capability":"code","source":"Git-synced project","outcome":"same website on VPS","status":"in_progress","next_action":"add optional self-host configuration"},
-    {"capability":"schema","source":"managed database","outcome":"external database","status":"pending","next_action":"inspect and copy schema"},
-    {"capability":"records","source":"managed database","outcome":"preserved records","status":"pending","next_action":"copy and verify counts"},
-    {"capability":"auth identities","source":"managed auth","outcome":"external auth","status":"pending","next_action":"transfer identities and verify"},
-    {"capability":"authorization","source":"RLS and staff roles","outcome":"same protected admin","status":"pending","next_action":"preserve policies and roles"},
-    {"capability":"uploaded file bytes","source":"managed storage and asset CDN","outcome":"external storage","status":"pending","next_action":"copy bytes and rewrite references"},
-    {"capability":"external providers","source":"Google broker and YouTube","outcome":"direct auth and cached YouTube","status":"pending","next_action":"implement direct OAuth and YouTube refresh"},
-    {"capability":"public endpoints","source":"media endpoint","outcome":"working external media","status":"pending","next_action":"support external client"},
-    {"capability":"schedules","source":"none","outcome":"twice-daily refresh","status":"pending","next_action":"add VPS timer"},
+    {"capability":"code","source":"Git-synced project","outcome":"same website on VPS","status":"prepared","next_action":"run external production build on configured VPS or CI"},
+    {"capability":"schema","source":"managed database","outcome":"external database","status":"blocked","next_action":"correct database credentials; saved connection rejected authentication"},
+    {"capability":"records","source":"managed database","outcome":"preserved records","status":"blocked","next_action":"run prepared copy script after connection correction"},
+    {"capability":"auth identities","source":"managed auth","outcome":"external auth","status":"blocked","next_action":"correct API URL returning 404; migrate email users and verify OAuth relinking"},
+    {"capability":"authorization","source":"RLS and staff roles","outcome":"same protected admin","status":"prepared","next_action":"apply copied schema and storage policies; verify real staff CRUD"},
+    {"capability":"uploaded file bytes","source":"managed storage and asset CDN","outcome":"external storage","status":"blocked","next_action":"correct API URL returning 404 then copy and byte-verify objects"},
+    {"capability":"external providers","source":"Google broker and YouTube","outcome":"direct auth and cached YouTube","status":"partial","next_action":"YouTube key/channel verified; configure direct Google OAuth and perform cache write"},
+    {"capability":"public endpoints","source":"media endpoint","outcome":"working external media","status":"prepared","next_action":"verify endpoint against external private storage"},
+    {"capability":"schedules","source":"none","outcome":"twice-daily refresh","status":"prepared","next_action":"install VPS systemd timer and verify first run"},
     {"capability":"secrets","source":"secure project secrets","outcome":"server-only VPS credentials","status":"available","next_action":"document secure VPS environment setup"},
     {"capability":"cutover","source":"current live domain","outcome":"VPS domain","status":"blocked","next_action":"VPS SSH access and DNS changes required"},
-    {"capability":"verification","source":"current preview","outcome":"verified external production","status":"pending","next_action":"tests and representative data checks"}
+    {"capability":"verification","source":"current preview","outcome":"verified external production","status":"partial","next_action":"five video rules tests passed; preview routes HTTP 200 with no page errors; external staff flows and production build remain blocked"}
   ]
 }
