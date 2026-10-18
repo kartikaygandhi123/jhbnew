@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminTable, type FieldDef } from "@/components/admin/AdminTable";
-import { HomeSections } from "@/routes/index";
+import { HomeSections } from "@/components/HomeSections";
 import { useHomeLayout } from "@/lib/content";
 import { DEFAULT_HOME_LAYOUT, HOME_LAYOUT_ROW, MAIN_SECTIONS, RAIL_SECTIONS, isVisible, moveSection, serializeHomeLayout, toggleSection, type HomeLayout } from "@/lib/home-layout";
 import { supabase } from "@/lib/external-client";
