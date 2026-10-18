@@ -16,8 +16,8 @@ export default defineConfig({
   vite: {
     define: {
       'import.meta.env.VITE_EXTERNAL_HOSTING': JSON.stringify('true'),
-      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(backendUrl),
-      'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(publishableKey),
+      ...(backendUrl ? { 'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(backendUrl) } : {}),
+      ...(publishableKey ? { 'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(publishableKey) } : {}),
     },
     resolve: { alias: [
       { find: /^@\/integrations\/supabase\/client$/, replacement: local('./src/lib/external-client.ts') },
