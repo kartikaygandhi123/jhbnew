@@ -105,9 +105,8 @@ function ArticlePage() {
           <img
             src={article.image_url}
             alt={article.title}
-            width={1024}
-            height={640}
-            className="mt-4 aspect-video w-full rounded-sm object-cover"
+            decoding="async"
+            className="mx-auto mt-4 block h-auto w-auto max-w-full rounded-sm"
           />
         ) : null}
 
