@@ -13,5 +13,6 @@
 - Application-owned browser and server adapters use the same external backend in preview and VPS; never edit generated integrations or fall back on failed writes, to prevent split content and identities.
 - Add external schema changes as checked-in SQL under deploy/migrations and apply before dependent releases, because managed schema tools target a different database.
 - Keep homepage-selection and kicker-validation rules in a shared news-rules module with tests, so editor and public behavior stay consistent.
+- Keep article URL collision handling and mutation confirmation in the tested article-write module; never overwrite another article or report a zero-row write as success.
 - Transfer asset pointer bytes to the private media bucket and resolve them through the existing media endpoint on VPS builds.
 - Refresh YouTube through a standalone scheduled script into durable JSON; visitor requests must never call the YouTube API.

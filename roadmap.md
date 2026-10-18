@@ -1,5 +1,7 @@
 # External hosting migration
 
+- [ ] Fix duplicate article URLs, confirm saved/deleted records, and align long card headlines.
+
 - [x] Connect preview and VPS application adapters to one external database; external reads and main-headline navigation verified.
 - [x] Add selected homepage article, restore category picker, and editor-selected kicker colors; database exclusivity and three rule tests passed.
 - [ ] Verify external staff create/edit/upload through the admin UI; blocked on an existing external staff session, unavailable to this sandbox.
