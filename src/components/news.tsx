@@ -19,9 +19,9 @@ const toneClass: Record<string, string> = {
 /** Compact card with a thumbnail on the left — used in the two top grids. */
 export function TileCard({ article }: { article: Article }) {
   return (
-    <Link to="/article/$id" params={{ id: articleKey(article) }} className="block">
+    <Link to="/article/$id" params={{ id: articleKey(article) }} className="block h-full min-w-0">
       <article
-        className={`flex gap-3 rounded-md border border-border p-3 transition-shadow hover:shadow-sm ${
+        className={`flex h-full gap-3 overflow-hidden rounded-md border border-border p-3 transition-shadow hover:shadow-sm ${
           toneClass[article.tone] ?? "bg-card"
         }`}
       >
@@ -33,16 +33,16 @@ export function TileCard({ article }: { article: Article }) {
             height={640}
             loading="lazy"
             decoding="async"
-            className="h-24 w-32 shrink-0 rounded-sm object-cover sm:h-28 sm:w-40"
+            className="h-24 w-20 shrink-0 rounded-sm object-cover sm:h-28 sm:w-24 lg:w-28"
           />
         ) : null}
-        <div className="min-w-0">
-          <p className={`text-[11px] font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}</p>
-          <h3 className="headline text-[15px] font-bold sm:text-base">
+        <div className="min-w-0 flex-1">
+          <p className={`line-clamp-2 [overflow-wrap:anywhere] text-[11px] font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}</p>
+          <h3 className="headline line-clamp-4 [overflow-wrap:anywhere] text-[15px] leading-relaxed font-bold sm:text-base">
             <span className="text-primary">{article.category_label}: </span>
             {article.title}
           </h3>
-          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{article.summary}</p>
+          <p className="mt-1 line-clamp-2 [overflow-wrap:anywhere] text-xs text-muted-foreground">{article.summary}</p>
         </div>
       </article>
     </Link>
@@ -52,15 +52,15 @@ export function TileCard({ article }: { article: Article }) {
 /** Full feed item with image, meta row and action bar. */
 export function FeedCard({ article }: { article: Article }) {
   return (
-    <article className="overflow-hidden rounded-md border border-border bg-card">
+    <article className="min-w-0 overflow-hidden rounded-md border border-border bg-card">
       <Link to="/article/$id" params={{ id: articleKey(article) }} className="block">
         <div className="flex gap-3 p-3">
           <div className="min-w-0 flex-1">
-            <h3 className="headline text-base font-bold sm:text-lg">
+            <h3 className="headline line-clamp-4 [overflow-wrap:anywhere] text-base leading-relaxed font-bold sm:text-lg">
               {article.kicker ? <span className={`font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}: </span> : null}
               {article.title}
             </h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{article.summary}</p>
+            <p className="mt-2 line-clamp-3 [overflow-wrap:anywhere] text-sm leading-relaxed text-muted-foreground">{article.summary}</p>
           </div>
           {article.image_url ? (
             <img
@@ -70,13 +70,13 @@ export function FeedCard({ article }: { article: Article }) {
               height={640}
               loading="lazy"
               decoding="async"
-              className="h-24 w-32 shrink-0 rounded-sm object-cover sm:h-28 sm:w-44"
+              className="h-24 w-20 shrink-0 rounded-sm object-cover sm:h-28 sm:w-44"
             />
           ) : null}
         </div>
       </Link>
-      <div className="flex items-center justify-between border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+        <span className="flex min-w-0 flex-wrap items-center gap-2 [overflow-wrap:anywhere]">
           <Link
             to="/category/$slug"
             params={{ slug: article.category_slug }}
@@ -106,7 +106,7 @@ export function RailItem({ article, withThumb }: { article: Article; withThumb?:
     <Link to="/article/$id" params={{ id: articleKey(article) }} className="block">
       <article className="flex gap-2 border-b border-border pb-3 last:border-0">
         <div className="min-w-0">
-          <h3 className="headline text-[13px] font-semibold">
+          <h3 className="headline line-clamp-4 [overflow-wrap:anywhere] text-[13px] leading-relaxed font-semibold">
             {article.kicker ? <span className={`font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}: </span> : null}
             {article.title}
           </h3>
