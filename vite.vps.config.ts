@@ -3,8 +3,8 @@ import { fileURLToPath } from 'node:url';
 
 const local = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 // Optional: set these to your own Supabase project when building for the VPS.
-// If left unset, the build falls back to the Lovable Cloud backend (see
-// src/lib/external-client.ts), so the site keeps working either way.
+// If left unset, use the same external backend configured for the preview
+// in src/lib/backend-config.ts. There is no Lovable Cloud write fallback.
 const backendUrl = process.env['VITE_SUPABASE_URL'];
 const publishableKey = process.env['VITE_SUPABASE_PUBLISHABLE_KEY'];
 
