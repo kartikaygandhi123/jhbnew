@@ -3,11 +3,12 @@ import { Newspaper, PlayCircle, Radio } from "lucide-react";
 
 import { ListSkeleton, RailItem, SectionHeading } from "@/components/news";
 import { bySection, useArticles, useSiteSettings, useVideos } from "@/lib/content";
+import { recentArticles } from "@/lib/news-rules";
 
 export function LeftRail() {
   const { data: articles, isLoading } = useArticles();
   const { data: settings } = useSiteSettings();
-  const latest = bySection(articles, "latest");
+  const latest = recentArticles(articles ?? []);
 
   return (
     <div className="space-y-4">

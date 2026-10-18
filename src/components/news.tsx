@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 
 import logo from "@/assets/jhb-logo-new.png.asset.json";
 import { articleKey, type Article } from "@/lib/content";
-import { kickerColor } from "@/lib/news-rules";
+import { articleDetails, kickerColor } from "@/lib/news-rules";
 
 export function SectionHeading({ children }: { children: ReactNode }) {
   return <h2 className="section-rule headline mb-3 text-xl font-bold sm:text-2xl">{children}</h2>;
@@ -35,12 +35,13 @@ function CardPhoto({ src, compact = false }: { src: string; compact?: boolean })
   );
 }
 
-function ArticleMeta({ article }: { article: Article }) {
+export function ArticleMeta({ article }: { article: Article }) {
+  const details = articleDetails(article);
   return (
     <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground [overflow-wrap:anywhere]">
-      <span className="font-semibold">{article.place}</span>
-      <span className="flex items-center gap-1"><Clock className="h-3 w-3 shrink-0" /> {article.time_label}</span>
-      <span className="font-semibold text-kicker-red">रिपोर्टर: संवाददाता</span>
+      {details.place ? <span className="font-semibold">{details.place}</span> : null}
+      {details.time ? <span className="flex items-center gap-1"><Clock className="h-3 w-3 shrink-0" /> {details.time}</span> : null}
+      {details.reporter ? <span className="font-semibold text-kicker-red">{details.reporter}</span> : null}
     </span>
   );
 }

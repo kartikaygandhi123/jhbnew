@@ -69,6 +69,7 @@ const articleFields: FieldDef[] = [
   { name: "category_slug", label: "श्रेणी", type: "category" },
   { name: "place", label: "स्थान", type: "text" },
   { name: "time_label", label: "समय टेक्स्ट", type: "text" },
+  { name: "reporter", label: "संवाददाता", type: "text" },
   { name: "image_url", label: "मुख्य तस्वीर", type: "image" },
   {
     name: "section",

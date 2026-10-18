@@ -1,5 +1,7 @@
 # External hosting migration
 
+- [x] Add optional editor-entered reporter details across article displays and newest-first automatic ताजा खबरें; external column verified, 13 tests passed, live ordering/navigation and sample metadata rendering checked. Staff save/delete UI verification still needs an external staff session as noted below.
+
 - [x] Restore larger homepage image frames with portrait fitting, share place/time/reporter strips across news items, and remove duplicate presentation code.
 
 - [x] Fix duplicate article URLs and zero-row write confirmation (six tests); verify long card headlines and public article navigation on desktop/mobile. External staff save/delete end-to-end remains blocked on the staff session below.
