@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
 import { Loader2, Plus, Save, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -55,6 +56,7 @@ interface Props {
 
 export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api, rowLabel }: Props) {
   const qc = useQueryClient();
+  const router = useRouter();
   const [draft, setDraft] = useState<Row | null>(null);
 
   const listKey = ["admin", table, filter?.value ?? ""];
@@ -71,7 +73,9 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
     },
   });
 
-  const invalidate = () => qc.invalidateQueries();
+  const invalidate = async () => {
+    await Promise.all([qc.invalidateQueries(), router.invalidate()]);
+  };
 
   const save = useMutation({
     mutationFn: async (row: Row) => {

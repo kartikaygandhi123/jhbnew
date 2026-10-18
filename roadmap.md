@@ -1,6 +1,6 @@
 # External hosting migration
 
-- [ ] Fix duplicate article URLs, confirm saved/deleted records, and align long card headlines.
+- [x] Fix duplicate article URLs and zero-row write confirmation (six tests); verify long card headlines and public article navigation on desktop/mobile. External staff save/delete end-to-end remains blocked on the staff session below.
 
 - [x] Connect preview and VPS application adapters to one external database; external reads and main-headline navigation verified.
 - [x] Add selected homepage article, restore category picker, and editor-selected kicker colors; database exclusivity and three rule tests passed.
