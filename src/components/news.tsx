@@ -108,8 +108,8 @@ export function FeedCard({ article }: { article: Article }) {
 export function RailItem({ article, withThumb }: { article: Article; withThumb?: boolean }) {
   return (
     <Link to="/article/$id" params={{ id: articleKey(article) }} className="block">
-      <article className="flex gap-2 border-b border-border pb-3 last:border-0">
-        <div className="min-w-0">
+      <article className="flex items-start justify-between gap-2 border-b border-border pb-3 last:border-0">
+        <div className="min-w-0 flex-1">
           <h3 className="headline line-clamp-4 [overflow-wrap:anywhere] text-[13px] leading-relaxed font-semibold">
             {article.kicker ? <span className={`font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}: </span> : null}
             {article.title}

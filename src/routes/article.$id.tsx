@@ -113,7 +113,7 @@ function ArticlePage() {
           <SectionHeading>इसे भी पढ़ें</SectionHeading>
           <div className="space-y-3">
             {related.map((a) => (
-              <RailItem key={a.id} article={a} />
+              <RailItem key={a.id} article={a} withThumb />
             ))}
           </div>
         </section>
