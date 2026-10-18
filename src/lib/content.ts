@@ -124,7 +124,6 @@ export function useVideos() {
         .eq("published", true)
         .order("sort_order");
       if (error) throw error;
-      if (import.meta.env['VITE_EXTERNAL_HOSTING'] !== 'true') return data ?? [];
       try {
         const response = await fetch('/api/public/media/youtube/cache.json');
         if (!response.ok) return data ?? [];
@@ -144,7 +143,7 @@ export function useLiveChannels() {
     queryFn: async (): Promise<LiveChannel[]> => {
       const { data, error } = await supabase.from("live_channels").select("*").order("sort_order");
       if (error) throw error;
-      if (import.meta.env['VITE_EXTERNAL_HOSTING'] === 'true') {
+      {
         try {
           const response = await fetch('/api/public/media/youtube/cache.json');
           if (response.ok) {
