@@ -1,7 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Clock, MapPin } from "lucide-react";
-
-import { RailItem, SectionHeading } from "@/components/news";
+import { ArticleMeta, RailItem, SectionHeading } from "@/components/news";
 import { ShareBar } from "@/components/ShareBar";
 import { ThreePane } from "@/components/ThreePane";
 import { articleParagraphs, useArticles } from "@/lib/content";
@@ -93,12 +91,7 @@ function ArticlePage() {
         ) : null}
 
         <div className="mt-3 flex flex-wrap items-center gap-4 border-y border-border py-2 text-[11px] text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" /> {article.place}
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" /> {article.time_label}
-          </span>
+          <ArticleMeta article={article} />
         </div>
 
         {article.image_url ? (

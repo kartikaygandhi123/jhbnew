@@ -69,6 +69,7 @@ const articleFields: FieldDef[] = [
   { name: "category_slug", label: "श्रेणी", type: "category" },
   { name: "place", label: "स्थान", type: "text" },
   { name: "time_label", label: "समय टेक्स्ट", type: "text" },
+  { name: "reporter", label: "संवाददाता", type: "text" },
   { name: "image_url", label: "मुख्य तस्वीर", type: "image" },
   {
     name: "section",
@@ -78,7 +79,7 @@ const articleFields: FieldDef[] = [
       { value: "big", label: "बड़ी खबरें" },
       { value: "desh", label: "देश और दुनिया" },
       { value: "feed", label: "आपके लिए (फीड)" },
-      { value: "latest", label: "ताजा (बायां रेल)" },
+      { value: "latest", label: "ताजा (पुराना सेक्शन)" },
       { value: "trending", label: "ट्रेंडिंग (दायां रेल)" },
     ],
   },

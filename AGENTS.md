@@ -15,5 +15,6 @@
 - Keep homepage-selection and kicker-validation rules in a shared news-rules module with tests, so editor and public behavior stay consistent.
 - Keep article URL collision handling and mutation confirmation in the tested article-write module; never overwrite another article or report a zero-row write as success.
 - Share photo fitting and metadata rendering across news cards; keep stable photo frames and avoid duplicating homepage credit markup.
+- Derive latest-news rails from the shared published article query using tested news-rules; refresh visible article queries periodically so edits from either host converge.
 - Transfer asset pointer bytes to the private media bucket and resolve them through the existing media endpoint on VPS builds.
 - Refresh YouTube through a standalone scheduled script into durable JSON; visitor requests must never call the YouTube API.

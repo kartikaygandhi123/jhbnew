@@ -6,7 +6,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 type Tables = Database["public"]["Tables"];
 
-export type Article = Tables["articles"]["Row"] & { kicker_color?: string; is_homepage_main?: boolean };
+export type Article = Tables["articles"]["Row"] & { kicker_color?: string; is_homepage_main?: boolean; reporter?: string | null };
 export type Category = Tables["categories"]["Row"];
 export type Video = Tables["videos"]["Row"];
 export type LiveChannel = Tables["live_channels"]["Row"];
@@ -78,6 +78,8 @@ export function useArticles() {
   return useQuery({
     queryKey: ["articles", "published"],
     staleTime: STALE,
+    refetchInterval: STALE,
+    refetchOnWindowFocus: true,
     queryFn: async (): Promise<Article[]> => {
       const { data, error } = await supabase
         .from("articles")

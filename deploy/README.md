@@ -12,8 +12,9 @@ The external database accepts connections and public content reads. The user has
 - Preview server: saved `EXTERNAL_SUPABASE_URL`, `EXTERNAL_SUPABASE_PUBLISHABLE_KEY`, and `EXTERNAL_SUPABASE_SECRET_KEY` (last one for private media only).
 - VPS: keep the GitHub build values and `/etc/jhb/site.env` settings below pointed at this same project. Code changes reach the VPS after a successful GitHub deployment; news edits need no code deployment.
 - Apply `deploy/migrations/20261018-shared-news.sql` before this release (already applied to the configured destination). It adds kicker color and a single selected homepage article without changing existing news.
+- Apply `deploy/migrations/20261018-article-reporter.sql` before the reporter editor release. It adds an optional reporter name without changing existing articles.
 - Allow your public preview origin plus `/auth` and `https://jaihindbharat.com/auth` as OAuth return URLs in your external provider. Email/password sign-in uses the external staff account. OAuth inside an embedded preview may be restricted; open the preview as a standalone page if necessary.
-- Shared content refreshes through the site's existing one-minute cache; a reload retrieves saved changes. Concurrent edits of the same row use last-save-wins, not a merge.
+- Shared articles refresh every minute while the page is visible and when returning to the page; local editor saves/deletes refresh all article displays immediately. Concurrent edits of the same row use last-save-wins, not a merge.
 - Lovable Cloud cannot be detached from an existing project, but these application adapters no longer use it for news CRUD, sign-in, or uploaded media. Old checked-in logo/e-paper pointers remain legacy assets until their one-time media transfer is verified.
 
 ## 1. Validate and copy content
