@@ -1,5 +1,7 @@
 # External hosting migration
 
+- [ ] Add optional editor-entered reporter details across article displays and newest-first automatic ताजा खबरें; apply external schema and test shared updates.
+
 - [x] Restore larger homepage image frames with portrait fitting, share place/time/reporter strips across news items, and remove duplicate presentation code.
 
 - [x] Fix duplicate article URLs and zero-row write confirmation (six tests); verify long card headlines and public article navigation on desktop/mobile. External staff save/delete end-to-end remains blocked on the staff session below.
