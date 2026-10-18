@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/external-client";
 import { listActivePromos } from "@/lib/promos.functions";
 import type { Database } from "@/integrations/supabase/types";
+import { articleDetails } from "@/lib/news-rules";
 
 type Tables = Database["public"]["Tables"];
 
@@ -27,14 +28,17 @@ export function articleParagraphs(a: Article): string[] {
   if (a.body && a.body.trim().length > 0) {
     return a.body.split(/\n{2,}/).filter((p) => p.trim().length > 0);
   }
+  const details = articleDetails(a);
+  const dateline = [details.place, details.reporter].filter(Boolean).join(', ');
+  const prefix = dateline ? `${dateline}। ` : '';
   if (a.summary) {
     return [
-      `${a.place}, संवाददाता। ${a.summary}`,
+      `${prefix}${a.summary}`,
       "विस्तृत जानकारी के अनुसार, इस घटनाक्रम से जुड़े तमाम पहलुओं पर चर्चा जारी है। प्रशासनिक सूत्रों का कहना है कि अगले कुछ दिनों में और अपडेट सामने आएंगे।",
       "हम इस मामले की गहन निगरानी कर रहे हैं। जैसे ही कोई नई जानकारी आएगी, हमारे पाठक सबसे पहले जान पाएंगे।",
     ];
   }
-  return [`${a.place}, संवाददाता। ${a.title}`, "इस खबर पर विस्तृत रिपोर्ट जल्द ही अपडेट की जाएगी।"];
+  return [`${prefix}${a.title}`, "इस खबर पर विस्तृत रिपोर्ट जल्द ही अपडेट की जाएगी।"];
 }
 
 export function useSiteSettings() {

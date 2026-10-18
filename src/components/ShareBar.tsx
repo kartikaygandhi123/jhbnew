@@ -56,6 +56,7 @@ export function ShareBar({ article }: { article: Article }) {
         kicker: article.kicker,
         place: article.place,
         timeLabel: article.time_label,
+        reporter: article.reporter,
         imageUrl: article.image_url,
         logoUrl: settings?.logo_url || logo.url,
         adUrls: headerAds,

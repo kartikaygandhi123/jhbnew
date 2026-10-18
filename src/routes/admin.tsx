@@ -79,7 +79,7 @@ const articleFields: FieldDef[] = [
       { value: "big", label: "बड़ी खबरें" },
       { value: "desh", label: "देश और दुनिया" },
       { value: "feed", label: "आपके लिए (फीड)" },
-      { value: "latest", label: "ताजा (पुराना सेक्शन)" },
+      { value: "latest", label: "ताजा (बायां रेल)" },
       { value: "trending", label: "ट्रेंडिंग (दायां रेल)" },
     ],
   },

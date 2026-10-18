@@ -10,6 +10,7 @@ export interface ShareCardInput {
   kicker: string;
   place: string;
   timeLabel: string;
+  reporter?: string | null;
   imageUrl: string | null;
   logoUrl: string | null;
   adUrls: string[];
@@ -206,7 +207,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   ctx.fillRect(0, y, W, contentBottom - y);
   y += 18;
 
-  const kicker = [input.kicker, input.place].filter(Boolean).join(" • ");
+  const kicker = [input.kicker, input.place, input.timeLabel, input.reporter].filter((value) => value?.trim()).join(" • ");
   if (kicker) {
     ctx.fillStyle = "#c81e1e";
     ctx.textAlign = "left";
