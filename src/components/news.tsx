@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Clock } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import logo from "@/assets/jhb-logo-new.png.asset.json";
 import { articleKey, type Article } from "@/lib/content";
@@ -16,25 +16,46 @@ const toneClass: Record<string, string> = {
   plain: "bg-card",
 };
 
+function CardPhoto({ src, compact = false }: { src: string; compact?: boolean }) {
+  const [portrait, setPortrait] = useState(true);
+  return (
+    <img
+      src={src}
+      alt=""
+      width={1024}
+      height={640}
+      loading="lazy"
+      decoding="async"
+      onLoad={(event) => {
+        const image = event.currentTarget;
+        setPortrait(image.naturalHeight > image.naturalWidth);
+      }}
+      className={`shrink-0 rounded-sm bg-muted/40 ${compact ? "h-14 w-20" : "h-32 w-28 sm:h-36 sm:w-44"} ${portrait ? "object-contain" : "object-cover"}`}
+    />
+  );
+}
+
+function ArticleMeta({ article }: { article: Article }) {
+  return (
+    <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground [overflow-wrap:anywhere]">
+      <span className="font-semibold">{article.place}</span>
+      <span className="flex items-center gap-1"><Clock className="h-3 w-3 shrink-0" /> {article.time_label}</span>
+      <span className="font-semibold text-kicker-red">रिपोर्टर: संवाददाता</span>
+    </span>
+  );
+}
+
 /** Compact card with a thumbnail on the left — used in the two top grids. */
 export function TileCard({ article }: { article: Article }) {
   return (
-    <Link to="/article/$id" params={{ id: articleKey(article) }} className="block h-full min-w-0">
       <article
-        className={`flex h-full gap-3 overflow-hidden rounded-md border border-border p-3 transition-shadow hover:shadow-sm ${
+        className={`flex h-full min-w-0 flex-col overflow-hidden rounded-md border border-border transition-shadow hover:shadow-sm ${
           toneClass[article.tone] ?? "bg-card"
         }`}
       >
+        <Link to="/article/$id" params={{ id: articleKey(article) }} className="flex flex-1 gap-3 p-3">
         {article.image_url ? (
-          <img
-            src={article.image_url}
-            alt=""
-            width={1024}
-            height={640}
-            loading="lazy"
-            decoding="async"
-            className="h-24 w-20 shrink-0 rounded-sm bg-muted/40 object-contain sm:h-28 sm:w-24 lg:w-28"
-          />
+          <CardPhoto src={article.image_url} />
         ) : null}
         <div className="min-w-0 flex-1">
           <p className={`line-clamp-2 [overflow-wrap:anywhere] text-[11px] font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}</p>
@@ -44,8 +65,9 @@ export function TileCard({ article }: { article: Article }) {
           </h3>
           <p className="mt-1 line-clamp-2 [overflow-wrap:anywhere] text-xs text-muted-foreground">{article.summary}</p>
         </div>
+        </Link>
+        <div className="mt-auto border-t border-border px-3 py-2"><ArticleMeta article={article} /></div>
       </article>
-    </Link>
   );
 }
 
@@ -63,31 +85,12 @@ export function FeedCard({ article }: { article: Article }) {
             <p className="mt-2 line-clamp-3 [overflow-wrap:anywhere] text-sm leading-relaxed text-muted-foreground">{article.summary}</p>
           </div>
           {article.image_url ? (
-            <img
-              src={article.image_url}
-              alt=""
-              width={1024}
-              height={640}
-              loading="lazy"
-              decoding="async"
-              className="h-24 w-20 shrink-0 rounded-sm bg-muted/40 object-contain sm:h-28 sm:w-44"
-            />
+            <CardPhoto src={article.image_url} />
           ) : null}
         </div>
       </Link>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
-        <span className="flex min-w-0 flex-wrap items-center gap-2 [overflow-wrap:anywhere]">
-          <Link
-            to="/category/$slug"
-            params={{ slug: article.category_slug }}
-            className="font-semibold hover:text-primary"
-          >
-            {article.place}
-          </Link>
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" /> {article.time_label}
-          </span>
-        </span>
+        <ArticleMeta article={article} />
         <Link
           to="/article/$id"
           params={{ id: articleKey(article) }}
@@ -110,18 +113,10 @@ export function RailItem({ article, withThumb }: { article: Article; withThumb?:
             {article.kicker ? <span className={`font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}: </span> : null}
             {article.title}
           </h3>
-          <p className="mt-1 text-[11px] text-muted-foreground">{article.time_label}</p>
+          <div className="mt-2"><ArticleMeta article={article} /></div>
         </div>
         {withThumb && article.image_url ? (
-          <img
-            src={article.image_url}
-            alt=""
-            width={1024}
-            height={640}
-            loading="lazy"
-            decoding="async"
-            className="h-14 w-20 shrink-0 rounded-sm bg-muted/40 object-contain"
-          />
+          <CardPhoto src={article.image_url} compact />
         ) : null}
       </article>
     </Link>
