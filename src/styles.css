@@ -4,6 +4,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.kicker-saffron { color: var(--saffron); }
+.kicker-green { color: var(--india-green); }
+.kicker-red { color: var(--kicker-red); }
+.kicker-black { color: var(--kicker-black); }
+.kicker-swatch-saffron { background-color: var(--saffron); }
+.kicker-swatch-green { background-color: var(--india-green); }
+.kicker-swatch-red { background-color: var(--kicker-red); }
+.kicker-swatch-black { background-color: var(--kicker-black); }
+
 /*
  * Design system definition.
  *

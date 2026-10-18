@@ -1,11 +1,12 @@
 # External hosting migration
 
-- [ ] Connect preview and VPS article editing to one external database; verify external reads and authenticated editing where access permits.
-- [ ] Add selected homepage article, restore category picker, and editor-selected kicker colors with rule tests.
+- [x] Connect preview and VPS application adapters to one external database; external reads and main-headline navigation verified.
+- [x] Add selected homepage article, restore category picker, and editor-selected kicker colors; database exclusivity and three rule tests passed.
+- [ ] Verify external staff create/edit/upload through the admin UI; blocked on an existing external staff session, unavailable to this sandbox.
 
-- [ ] Transfer schema, content, staff identities, and media; destination API access now works, but database login is still rejected.
-- [x] Add opt-in external backend/auth configuration without switching the current site.
+- [ ] Verify historical media and staff migration completeness; user populated external tables, but full source/destination transfer inventory is unavailable.
+- [x] Add shared external backend/auth configuration while retaining separate managed and VPS hosting targets.
 - [x] Add cached twice-daily YouTube videos and automatic live detection; first provider refresh awaits valid destination.
 - [x] Add repeatable GitHub-to-VPS deployment, TLS/proxy configuration, and operations guide.
-- [ ] Verify external production build, staff editing and migration outcomes; destination unavailable.
+- [ ] Verify deployed VPS release and migration outcomes; requires VPS access and external staff session.
 - [ ] VPS installation, workflow activation and domain cutover; requires VPS access and GitHub secrets.
