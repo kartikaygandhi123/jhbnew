@@ -1,68 +1,110 @@
-# Jai Hind Bharat: external hosting
+# Jai Hind Bharat: repeatable Linux VPS deployment
 
-The Lovable preview and VPS now use the same user-owned database for content, sign-in and uploaded media. Both editors save directly to that database; there is no two-database replication. Hosting targets remain separate. Public connection details live in `src/lib/backend-config.ts`; private credentials are never committed.
+The VPS build runs independently using Vite, TanStack Start and Nitro's Node server. Lovable is a development editor only. Articles, categories, staff accounts/roles, settings, ads, live channels, videos, editions, pages and new uploaded media use the existing external backend. No local data store or database copy is created by deployment. Do not run `migration:external`, seed scripts, or old migrations when deploying this existing database.
 
-## Current blockers
+## 1. Prepare Ubuntu 24.04
 
-The external database accepts connections and public content reads. On 18 October 2026, live browser checks confirmed the homepage, article page and e-paper read from the external database with no page errors. The external inventory contains 15 articles, 6 categories, 0 videos, 1 live channel, 5 trending tags, 1 edition, 8 e-paper pages, 1 settings row, 5 advertisements, 1 profile and 1 role row. The managed source contains 2 articles, 6 categories, 3 videos, 1 live channel, 0 tags, 1 edition, 1 e-paper page, 1 settings row, 5 advertisements, 1 profile and 1 role row. Counts do not establish identical records or identity/media completeness. Do not overwrite newer destination content or restore deliberately deleted articles from the older source. Legacy asset references remain in external articles, e-paper and settings. VPS access and GitHub deployment credentials have not been supplied. Existing external staff must sign in again; old managed sessions do not transfer. Google OAuth, SMTP and signup settings require provider verification.
+As a server administrator, install security updates and tools:
 
-## Shared editor connection
-
-- Preview browser: public URL/key in `src/lib/backend-config.ts`; no private key belongs here.
-- Preview server: saved `EXTERNAL_SUPABASE_URL`, `EXTERNAL_SUPABASE_PUBLISHABLE_KEY`, and `EXTERNAL_SUPABASE_SECRET_KEY` (last one for private media only).
-- VPS: keep the GitHub build values and `/etc/jhb/site.env` settings below pointed at this same project. Code changes reach the VPS after a successful GitHub deployment; news edits need no code deployment.
-- Apply `deploy/migrations/20261018-shared-news.sql` before this release (already applied to the configured destination). It adds kicker color and a single selected homepage article without changing existing news.
-- Apply `deploy/migrations/20261018-article-reporter.sql` before the reporter editor release. It adds an optional reporter name without changing existing articles.
-- Allow your public preview origin plus `/auth` and `https://jaihindbharat.com/auth` as OAuth return URLs in your external provider. Email/password sign-in uses the external staff account. OAuth inside an embedded preview may be restricted; open the preview as a standalone page if necessary.
-- Shared articles refresh every minute while the page is visible and when returning to the page; local editor saves/deletes refresh all article displays immediately. Concurrent edits of the same row use last-save-wins, not a merge.
-- Lovable Cloud cannot be detached from an existing project, but these application adapters no longer use it for news CRUD, sign-in, or uploaded media. Old checked-in logo/e-paper pointers remain legacy assets until their one-time media transfer is verified.
-
-## 1. Validate and copy content
-
-For a complete managed database and account transfer, use Lovable **More → Database → Manage → Settings → Export data**, then the Database card's **Export → Start export**. Download the resulting export. It includes database structure, records and account password hashes, but not storage files, secrets or sign-in provider configuration. Download storage files separately from **More → Storage**. Do not use the legacy `migration:external` script for this full export; it is not the supported Cloud export workflow.
-
-Restore the official export into a separate staging database you own, not directly over the active external database. Compare source and destination records by stable ID and review missing records before importing anything: a missing row may be an intentional deletion, and the destination already contains newer newsroom work. Review the three source video rows separately because the current external videos table is empty. Do not blindly restore source profiles or roles over external staff identities. Move the downloaded media and legacy assets to external storage, then update references only after verifying the corresponding destination files. Pause editing during the final reviewed import. Keep the source intact until counts, representative content, media and staff sign-in have been verified.
-
-Sign-in providers and sessions need separate configuration; the official database export does not configure OAuth or email delivery. Do not copy the old first-user automatic admin-assignment behavior into an external public-signup flow. Preserve external staff permissions unless a reviewed identity transfer explicitly changes them.
-
-In the external project set Site URL to `https://jaihindbharat.com` and allowed redirects to `https://jaihindbharat.com/auth` plus localhost only during testing. Configure Google with the project's own OAuth callback, not the Lovable broker. Disable public signup, configure SMTP and password reset delivery, and enable breached-password protection when supported. Confirm these settings in the provider before launch; they are not inferred from code.
-
-## 2. Prepare Hostinger Ubuntu VPS
-
-Install Node.js 22, Bun, Nginx, Certbot and a firewall. Create a non-root `jhb` service user, `/srv/jhb/releases`, and `/etc/jhb`. Keep `/etc/jhb/site.env` owned by root, readable by the service group only (0640). Its real values belong only on the VPS:
-
-```text
-SUPABASE_URL=<your external project API origin>
-SUPABASE_PUBLISHABLE_KEY=<your external publishable key>
-SUPABASE_SERVICE_ROLE_KEY=<your external secret key>
-YOUTUBE_API_KEY=<your YouTube API key>
+```sh
+sudo apt update
+sudo apt install -y nginx certbot python3-certbot-nginx git curl unzip ufw
+sudo adduser --disabled-password --gecos '' jhb
+sudo install -d -o jhb -g jhb /srv/jhb/releases
+sudo install -d -o root -g jhb -m 0750 /etc/jhb
+sudo ufw allow OpenSSH
+sudo ufw allow 'Nginx Full'
+sudo ufw enable
 ```
 
-These are descriptions, not working credentials. Never use the old managed project values on the VPS. Browser builds need only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the same external project. Without explicit build values, the application-owned public configuration is used; it never retries a failed write against Lovable Cloud.
+Install Node.js **22.22 or newer in the 22 series**, from a trusted official distribution/package source, at `/usr/bin/node`. Install Bun **1.3.3** using its official versioned installer and make it available at `/usr/local/bin/bun` to the service and deployment users. Verify `node --version` and `bun --version`. The lockfile is required; use `bun install --frozen-lockfile`, not an unlocked dependency update. A KVM 2 server builds with development dependencies; do not use `--production` before compiling.
 
-Install `deploy/jhb.service`, `deploy/jhb-youtube.service` and `deploy/jhb-youtube.timer` into `/etc/systemd/system/`. Install the Nginx configuration, enable its site, and run `nginx -t`. Allow SSH, HTTP and HTTPS only; keep port 3000 bound to loopback. Grant the deployment user only permission to restart the `jhb` service via a narrow sudoers rule. Ensure `/usr/local/bin/bun` is installed and executable for that user. Do not grant general passwordless sudo.
+Keep SSH key-only access, retain a trusted console recovery method, and verify the host fingerprint. Do not expose port 3000 publicly.
 
-## 3. Automatic releases from GitHub
+## 2. Configure once, outside Git
 
-For manual FileZilla uploads instead, follow [the SFTP release guide](FILEZILLA.md). It builds on the VPS, preserves the existing page addresses, and uses the same shared external database. Plain FTP is not recommended; use FileZilla's encrypted SFTP option. An upload alone does not start the website service.
+Copy `.env.example` to `/etc/jhb/site.env`, replace its placeholders privately, then set ownership `root:jhb` and mode `0640`. It is dotenv syntax, not a shell script. Do not place this file in any release or web directory.
 
-The existing Git sync must target the repository's `main` branch, or edit the workflow branch to match. Lovable changes reach the VPS only AFTER they reach that synced Git branch; drafts do not deploy until accepted. Configure the GitHub production environment secrets: `EXTERNAL_SUPABASE_URL`, `EXTERNAL_SUPABASE_PUBLISHABLE_KEY`, `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`. Obtain the SSH host key fingerprint through Hostinger's trusted console; do not bypass host verification. Project secrets in Lovable do not automatically transfer into GitHub or the VPS.
+| Variable | Required at | Purpose |
+| --- | --- | --- |
+| `SUPABASE_URL` | Build + runtime | Existing external API URL; builds reject a different project |
+| `SUPABASE_PUBLISHABLE_KEY` | Build + runtime | Public key; becomes browser configuration |
+| `SUPABASE_SERVICE_ROLE_KEY` | Runtime | External private storage credential; never browser code |
+| `SITE_ORIGIN` | Runtime | HTTPS test/production origin for article image previews |
+| `YOUTUBE_API_KEY` | Timer only | YouTube Data API v3 refresh; not needed for cached playback |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | Optional build only | Overrides; must equal corresponding runtime values |
 
-Each push builds the separate Node target, transfers a release, switches an atomic symlink, restarts the service and checks the homepage; on failed startup it restores the prior release. The workflow does NOT rerun the one-time migration or seed sample data. New future schema changes need explicit external migrations before deploying dependent code. One external database is used by all VPS releases, so newsroom uploads/content persist independently of code deployments.
+Use the existing backend's URL and keys, not the managed `.env`. The VPS build ignores repository `.env` files. Build and runtime must match; a mismatch is rejected rather than silently splitting staff identities/content. Service-role credentials are only used to read private known media paths and by the scheduled cache writer. Ordinary editor writes use staff sessions and existing RLS.
 
-## 4. Videos and Live TV
+Managed preview uses the application-owned external public defaults and saved `EXTERNAL_SUPABASE_URL`, `EXTERNAL_SUPABASE_PUBLISHABLE_KEY`, `EXTERNAL_SUPABASE_SECRET_KEY`. It does not fall back to managed content on failure.
 
-Run `systemctl start jhb-youtube.service` once and inspect its result, then enable `jhb-youtube.timer`. It runs twice daily, UTC 00:00 and 12:00 (05:30/17:30 India), with up to one minute spreading. It resolves the requested channel, fetches its uploads playlist and performs one live search per refresh, then stores `youtube/cache.json` in private media storage. Visitors read cached JSON; API keys never reach browsers. Failed refreshes retain the previous cache. Manually edited video entries take precedence over duplicates. Live status is a twice-daily snapshot, so a new live broadcast may not appear until the next refresh. YouTube embeds play directly from YouTube; the VPS does not rebroadcast video or bypass embed restrictions. Every video still depends on YouTube permitting embedding.
+**Git safety limitation:** this environment protects `.gitignore` and the generated tracked `.env`, so its tracking could not be corrected here. Before a real release, locally add `.env` and `.env.*` exclusions with `!.env.example`, remove `.env` from Git's index while preserving the local file, and commit that change. Also exclude private `.key`/`.pem` files. Never enter private credentials into the managed generated `.env`. Rotate any credentials previously pasted into chat or committed; deleting a current file does not remove old history. The current `.env` contains public managed connection details only, not a service key.
 
-## 5. Cutover checklist
+## 3. Build a new immutable release
 
-- Compare every table's counts and representative images/PDFs against source.
-- Sign in as actual staff; create/read/edit/delete a temporary article and advertisement, upload a photo, then remove test records.
-- Check homepage, search, article share previews, mobile header ads, e-paper full PDF/pages/thumbnails, video selection and Live TV fallback.
-- Test Google sign-in and password-reset email delivery with external provider settings.
-- Check first YouTube refresh and timer logs.
-- Point domain A/AAAA records at the VPS only after verifying the VPS; remove stale AAAA if not serving IPv6.
-- Issue HTTPS using Certbot, verify redirects and automatic certificate renewal.
-- Keep an export/storage backup, confirm provider backups, monitor disk/memory/error logs, and test rollback.
+Run as `jhb` or a scoped deployment user:
 
-No claim of unlimited traffic or attack-proof security is made. Load testing and a production security review remain necessary before a high-traffic launch.
+```sh
+release=$(openssl rand -hex 20)
+git clone --branch main https://github.com/kartikaygandhi123/jhbnew.git /srv/jhb/releases/$release
+cd /srv/jhb/releases/$release
+bun install --frozen-lockfile
+bun run test:migration
+bunx vitest run src/lib/article-write.test.ts src/lib/news-rules.test.ts src/lib/media-urls.test.ts
+node scripts/with-site-env.mjs /etc/jhb/site.env bun run build:vps
+node scripts/validate-portability.mjs --output
+```
+
+Use an SSH/deploy key for a private repository; never embed its token in a clone URL. `with-site-env.mjs` reads the same production file used by systemd and prints no values. No source edits or separate logo uploads are needed. Static files are under `.output/public`; the server entry is `.output/server/index.mjs`. All 31 recovered historical static files, the real logo and favicon are in the repository. New editorial media is uploaded to the existing private `media` bucket and survives release changes.
+
+Known historical URLs are translated on reads to repository files, without editing stored database values. Unknown legacy objects resolve to external `media/migrated/assets/...`; their bytes must exist there. There were no unknown legacy references in current public records during this audit. Future developer-added static graphics must be checked in as actual files with the same release, not just managed CDN pointers. Future staff-managed graphics should be uploaded through the existing editor.
+
+## 4. Service and activation
+
+Install `deploy/jhb.service` into `/etc/systemd/system/`. It uses `/usr/bin/node`, user/group `jhb`, loopback port 3000, the `current` symlink and `/etc/jhb/site.env`. Install the YouTube service/timer if required. Run:
+
+```sh
+sudo systemctl daemon-reload
+sudo systemctl enable jhb
+```
+
+Authorize only the deployment user's restart of `jhb` via a narrow sudoers rule using `visudo` (confirm your systemctl path). Do not grant general passwordless sudo. Activate as that user from the release directory:
+
+```sh
+bash deploy/activate-release.sh "$release"
+curl --fail http://127.0.0.1:3000/
+sudo systemctl status jhb --no-pager
+```
+
+Activation checks the server entry, switches the symlink atomically, restarts and health-checks the homepage, restoring the prior release on failure where available. First deployment has no previous release. Health status alone does not establish database permissions, media availability or successful staff editing.
+
+## 5. Nginx and HTTPS (operator actions, not performed here)
+
+`deploy/nginx.conf` is the proxy template. Copy it to `/etc/nginx/sites-available/jhb`, replace `server_name` with the selected test/production hostname as infrastructure configuration, enable the site, and run `sudo nginx -t` before reloading. Keep `location /` proxying to the running Node service; never replace it with a static `index.html` fallback. This preserves `/article/...`, `/category/...`, `/auth`, `/admin`, `/epaper`, `/videos`, `/live-tv`, `/search` and `/api/public/media/...` including pasted URLs and reloads.
+
+When separately authorized, set A/AAAA records to the VPS (remove an unusable IPv6 record), issue HTTPS via `sudo certbot --nginx -d YOUR_DOMAIN`, and run `sudo certbot renew --dry-run`. Update `SITE_ORIGIN` in `/etc/jhb/site.env`, then restart `jhb`; no application source edit is needed for `.cloud` versus `.com`.
+
+In the existing external auth provider, verify the Site URL, approved same-origin `/auth` callbacks for test/production/preview, Google credentials and SMTP. Direct Google OAuth uses that provider, not the Lovable broker. Preserve existing accounts, role assignments and RLS. No auth/provider settings were changed in this task.
+
+## 6. Videos and Live TV
+
+Enable YouTube Data API v3 for your API key. Never supply a stream key: embeds play directly from YouTube; no rebroadcasting/media server is used. The standalone script reads `YOUTUBE_API_KEY` and writes durable JSON to **external storage** `media/youtube/cache.json`, never the VPS filesystem. Visitors on both preview and VPS read cached JSON through the media endpoint, not the YouTube API. Manual database videos win on duplicates. Detected live stream wins, otherwise the latest upload is used. Failed refresh keeps previous JSON.
+
+```sh
+sudo systemctl start jhb-youtube.service
+sudo journalctl -u jhb-youtube.service -n 30 --no-pager
+sudo systemctl enable --now jhb-youtube.timer
+systemctl list-timers jhb-youtube.timer
+```
+
+Refresh is twice daily at UTC 00:00/12:00 with up to one minute spreading. Live status may lag twelve hours, and embedding must be permitted by YouTube. Timer activation writes the cache; it was deliberately not run during this read-only-data portability task.
+
+## 7. Updates, rollback and operations
+
+Clone each update into a new release directory and repeat tests/build/activation; do not pull or upload over `/srv/jhb/current`. News edits do not require new releases. Keep at least the prior known-good release. For manual rollback, run that prior directory's `deploy/activate-release.sh` with its 40-character identifier. Shared database changes cannot be rolled back by changing code; none are required or authorized here.
+
+For FileZilla use [FILEZILLA.md](FILEZILLA.md), encrypted SFTP, separate releases and the same build flow. Optional GitHub Actions uses `main` and production secrets `EXTERNAL_SUPABASE_URL`, `EXTERNAL_SUPABASE_PUBLISHABLE_KEY`, `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`. Runtime secrets stay on the VPS. Do not run automatic and manual activation simultaneously. Git sync status/branch must be verified in Lovable settings; this agent cannot push or verify provider sync.
+
+Troubleshooting: `sudo journalctl -u jhb -n 50 --no-pager`, `sudo nginx -t`, `sudo systemctl status jhb`. A backend mismatch needs matching environment values and a new build; media 503 needs the external storage secret; media 404 means missing object/path; Google failures need provider/callback verification. Keep logs private and do not print credentials.
+
+Before launch, verify real staff create/edit/upload/delete, deep-link refresh, PDFs/images, ads, search, social previews and YouTube cache on the actual VPS. Keep external database/storage backups, monitor resources and test rollback. Credentials, DNS, certificates, provider configuration and service installation cannot live in Git. No traffic capacity/security guarantee is made. See [PORTABILITY-AUDIT.md](PORTABILITY-AUDIT.md) for what was and was not checked.
