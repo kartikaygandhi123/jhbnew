@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminTable, type FieldDef } from "@/components/admin/AdminTable";
+import { HomeSections } from "@/components/HomeSections";
+import { useHomeLayout } from "@/lib/content";
+import { DEFAULT_HOME_LAYOUT, HOME_LAYOUT_ROW, MAIN_SECTIONS, RAIL_SECTIONS, isVisible, moveSection, serializeHomeLayout, toggleSection, type HomeLayout } from "@/lib/home-layout";
 import { supabase } from "@/lib/external-client";
 import { useEditions } from "@/lib/content";
 import { makeThumb, renderPdfPages } from "@/lib/epaper-upload";
@@ -37,6 +40,7 @@ const TABS = [
   { id: "epaper", label: "ई-पेपर" },
   { id: "tags", label: "ट्रेंडिंग टैग" },
   { id: "ads", label: "विज्ञापन" },
+  { id: "layout", label: "होम पेज लेआउट" },
   { id: "settings", label: "साइट सेटिंग्स" },
 ] as const;
 
@@ -297,6 +301,7 @@ function AdminPage() {
           />
         )}
 
+        {tab === "layout" && <HomeLayoutAdmin />}
         {tab === "settings" && <SettingsForm />}
       </div>
     </div>
@@ -496,6 +501,74 @@ function EpaperAdmin() {
   );
 }
 
+
+function HomeLayoutAdmin() {
+  const qc = useQueryClient();
+  const { data: saved } = useHomeLayout();
+  const [draft, setDraft] = useState<HomeLayout | null>(null);
+  const layout = draft ?? saved ?? DEFAULT_HOME_LAYOUT;
+  const [preview, setPreview] = useState(false);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase
+        .from("site_settings")
+        .upsert({ id: HOME_LAYOUT_ROW, footer_text: serializeHomeLayout(layout) })
+        .select("id");
+      if (error) throw error;
+      if (!data || data.length === 0) throw new Error("सेव नहीं हुआ — अनुमति जांचें");
+    },
+    onSuccess: () => {
+      toast.success("होम पेज लेआउट सेव हो गया");
+      setDraft(null);
+      void qc.invalidateQueries({ queryKey: ["site_settings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const label = (id: string) => MAIN_SECTIONS.find((s) => s.id === id)?.label ?? id;
+  const toggle = (id: string) => (
+    <input type="checkbox" checked={isVisible(layout, id)} onChange={() => setDraft(toggleSection(layout, id))} className="h-4 w-4 accent-primary" />
+  );
+
+  return (
+    <div className="space-y-4">
+      <section className="rounded-md border border-border bg-card p-3">
+        <h2 className="mb-2 text-sm font-bold">मुख्य कॉलम — दिखाएं / क्रम बदलें</h2>
+        <ul className="space-y-2">
+          {layout.order.map((id, i) => (
+            <li key={id} className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm">
+              {toggle(id)}
+              <span className={`flex-1 ${isVisible(layout, id) ? "" : "text-muted-foreground line-through"}`}>{label(id)}</span>
+              <button type="button" aria-label="ऊपर" disabled={i === 0} onClick={() => setDraft(moveSection(layout, id, -1))} className="h-7 w-7 rounded border border-border disabled:opacity-30">↑</button>
+              <button type="button" aria-label="नीचे" disabled={i === layout.order.length - 1} onClick={() => setDraft(moveSection(layout, id, 1))} className="h-7 w-7 rounded border border-border disabled:opacity-30">↓</button>
+            </li>
+          ))}
+        </ul>
+        <h2 className="mt-4 mb-2 text-sm font-bold">साइड कॉलम (सभी पेजों पर)</h2>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {RAIL_SECTIONS.map((s) => (
+            <li key={s.id} className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm">
+              {toggle(s.id)} <span>{s.label}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60">सेव करें</button>
+          <button type="button" onClick={() => setPreview((p) => !p)} className="rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-accent">{preview ? "प्रीव्यू छिपाएं" : "प्रीव्यू देखें"}</button>
+          <button type="button" onClick={() => setDraft(DEFAULT_HOME_LAYOUT)} className="rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-accent">डिफ़ॉल्ट पर लौटें</button>
+          {draft && <span className="self-center text-xs text-primary">बदलाव अभी सेव नहीं हुए</span>}
+        </div>
+      </section>
+      {preview && (
+        <section className="rounded-md border-2 border-dashed border-primary p-3">
+          <p className="mb-3 text-xs font-semibold text-primary">प्रीव्यू — मुख्य कॉलम (सेव से पहले)</p>
+          <HomeSections layout={layout} />
+        </section>
+      )}
+    </div>
+  );
+}
 
 function SettingsForm() {
   const qc = useQueryClient();

@@ -2,16 +2,19 @@ import { Link } from "@tanstack/react-router";
 import { Newspaper, PlayCircle, Radio } from "lucide-react";
 
 import { ListSkeleton, RailItem, SectionHeading } from "@/components/news";
-import { bySection, useArticles, useSiteSettings, useVideos } from "@/lib/content";
+import { bySection, useArticles, useHomeLayout, useSiteSettings, useVideos } from "@/lib/content";
+import { DEFAULT_HOME_LAYOUT, isVisible } from "@/lib/home-layout";
 import { recentArticles } from "@/lib/news-rules";
 
 export function LeftRail() {
   const { data: articles, isLoading } = useArticles();
   const { data: settings } = useSiteSettings();
+  const { data: layout = DEFAULT_HOME_LAYOUT } = useHomeLayout();
   const latest = recentArticles(articles ?? []);
 
   return (
     <div className="space-y-4">
+      {isVisible(layout, "latest") && (
       <section className="rounded-md border border-border bg-card p-3">
         <SectionHeading>ताजा खबरें</SectionHeading>
         {isLoading ? (
@@ -19,12 +22,14 @@ export function LeftRail() {
         ) : (
           <div className="space-y-3">
             {latest.map((a) => (
-              <RailItem key={a.id} article={a} />
+              <RailItem key={a.id} article={a} withThumb />
             ))}
           </div>
         )}
       </section>
+      )}
 
+      {isVisible(layout, "quick-links") && (
       <section className="rounded-md border border-border bg-card p-4 text-center">
         <p className="headline text-lg font-bold">{settings?.site_name ?? "जय हिन्द भारत"}</p>
         <Link
@@ -46,6 +51,7 @@ export function LeftRail() {
           <Radio className="h-4 w-4" /> लाइव टीवी देखें
         </Link>
       </section>
+      )}
     </div>
   );
 }
@@ -61,8 +67,8 @@ export function TrendingRail() {
         <ListSkeleton />
       ) : (
         <div className="space-y-3">
-          {trending.map((a, i) => (
-            <RailItem key={a.id} article={a} withThumb={i === 0} />
+          {trending.map((a) => (
+            <RailItem key={a.id} article={a} withThumb />
           ))}
         </div>
       )}
@@ -72,11 +78,13 @@ export function TrendingRail() {
 
 export function RightRail() {
   const { data: videos } = useVideos();
+  const { data: layout = DEFAULT_HOME_LAYOUT } = useHomeLayout();
 
   return (
     <div className="space-y-4">
-      <TrendingRail />
+      {isVisible(layout, "trending") && <TrendingRail />}
 
+      {isVisible(layout, "videos") && (videos ?? []).length > 0 && (
       <section className="rounded-md border border-border bg-card p-3">
         <SectionHeading>वीडियो</SectionHeading>
         <div className="space-y-3">
@@ -96,6 +104,7 @@ export function RightRail() {
           ))}
         </div>
       </section>
+      )}
     </div>
   );
 }

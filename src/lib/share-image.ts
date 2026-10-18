@@ -18,6 +18,8 @@ export interface ShareCardInput {
   siteUrl: string;
 }
 
+export const SITE_DOMAIN = "www.jaihindbharat.com";
+
 const W = 1080;
 const H = 1080;
 
@@ -185,7 +187,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   const adGap = loadedAds.length > 1 ? 6 : 0;
   const adW = loadedAds.length > 0 ? (adAreaW - adGap * (loadedAds.length - 1)) / loadedAds.length : adAreaW;
   loadedAds.forEach((ad, index) => {
-    drawContain(ctx, ad, adStart + index * (adW + adGap), 6, adW, mastheadH - 12);
+    drawCover(ctx, ad, adStart + index * (adW + adGap), 4, adW, mastheadH - 8);
   });
 
   // Single thin red rule only — no coloured strips.
@@ -236,12 +238,33 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
   ctx.fillStyle = "#292929";
   ctx.font = "27px 'Noto Sans Devanagari', serif";
+  const readMore = `Read More On ${SITE_DOMAIN}`;
+  const maxLines = Math.max(1, Math.floor((contentBottom - 10 - y) / 36));
   const bodyLines = wrap(ctx, input.summary, W - 88);
-  for (const line of bodyLines) {
-    if (y + 36 > contentBottom - 10) break;
-    ctx.fillText(line, 44, y + 26);
-    y += 36;
+  const shown = bodyLines.slice(0, maxLines);
+  const needsMore = bodyLines.length > maxLines;
+  if (needsMore) {
+    // Trim the last line until "… Read More On …" fits on it.
+    let last = shown[maxLines - 1] ?? "";
+    const suffix = `… ${readMore}`;
+    while (last && ctx.measureText(last + suffix).width > W - 88) last = last.split(" ").slice(0, -1).join(" ");
+    shown[maxLines - 1] = last + suffix;
   }
+  shown.forEach((line, i) => {
+    const isLast = needsMore && i === shown.length - 1;
+    if (isLast) {
+      const idx = line.lastIndexOf(readMore);
+      const head = line.slice(0, idx);
+      ctx.fillStyle = "#292929";
+      ctx.fillText(head, 44, y + 26);
+      ctx.fillStyle = "#c81e1e";
+      ctx.font = "bold 27px 'Noto Sans Devanagari', sans-serif";
+      ctx.fillText(readMore, 44 + ctx.measureText(head).width, y + 26);
+    } else {
+      ctx.fillText(line, 44, y + 26);
+    }
+    y += 36;
+  });
 
 
   // Deliberately small footer: social marks and one visit message only.
@@ -253,7 +276,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   ctx.fillStyle = "#c81e1e";
   ctx.textAlign = "right";
   ctx.font = "bold 25px Arial, sans-serif";
-  ctx.fillText(`For latest news visit ${input.siteUrl}`, W - 38, H - 19);
+  ctx.fillText(`For latest news visit ${SITE_DOMAIN}`, W - 38, H - 19);
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
