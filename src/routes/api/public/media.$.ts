@@ -15,8 +15,9 @@ export const Route = createFileRoute("/api/public/media/$")({
           return new Response("Not found", { status: 404 });
         }
         const vps = import.meta.env['VITE_EXTERNAL_HOSTING'] === 'true';
-        const url = process.env['EXTERNAL_SUPABASE_URL'] || (vps ? process.env['SUPABASE_URL'] : undefined) || EXTERNAL_BACKEND_URL;
-        const key = process.env['EXTERNAL_SUPABASE_SECRET_KEY'] || (vps ? process.env['SUPABASE_SERVICE_ROLE_KEY'] : undefined);
+        const url = (vps ? process.env['SUPABASE_URL'] : process.env['EXTERNAL_SUPABASE_URL']) || EXTERNAL_BACKEND_URL;
+        const key = vps ? process.env['SUPABASE_SERVICE_ROLE_KEY'] : process.env['EXTERNAL_SUPABASE_SECRET_KEY'];
+        if (url !== EXTERNAL_BACKEND_URL) return new Response('Media configuration mismatch', { status: 503 });
         if (!key) return new Response("Media temporarily unavailable", { status: 503 });
         const supabaseAdmin = createClient(url, key, {
           auth: { persistSession: false, autoRefreshToken: false },

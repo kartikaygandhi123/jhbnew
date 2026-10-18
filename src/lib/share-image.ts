@@ -253,7 +253,7 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
   ctx.fillStyle = "#c81e1e";
   ctx.textAlign = "right";
   ctx.font = "bold 25px Arial, sans-serif";
-  ctx.fillText("For latest news visit jaihindbharat.com", W - 38, H - 19);
+  ctx.fillText(`For latest news visit ${input.siteUrl}`, W - 38, H - 19);
 
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(

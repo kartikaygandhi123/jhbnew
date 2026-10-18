@@ -14,7 +14,12 @@ export const getPublicArticle = createServerFn({ method: "GET" })
       .eq("published", true)
       .eq("slug", data.key)
       .maybeSingle();
-    if (bySlug.data) return bySlug.data;
+    const withPreview = (article: NonNullable<typeof bySlug.data>) => {
+      const origin = process.env['SITE_ORIGIN'];
+      const imageUrl = article.image_url?.startsWith('https://') ? article.image_url : origin && article.image_url ? new URL(article.image_url, origin).href : null;
+      return { article, imageUrl };
+    };
+    if (bySlug.data) return withPreview(bySlug.data);
 
     if (!/^[0-9a-f-]{36}$/i.test(data.key)) return null;
     const byId = await supabasePublic
@@ -23,5 +28,5 @@ export const getPublicArticle = createServerFn({ method: "GET" })
       .eq("published", true)
       .eq("id", data.key)
       .maybeSingle();
-    return byId.data;
+    return byId.data ? withPreview(byId.data) : null;
   });

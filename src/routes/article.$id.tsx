@@ -9,7 +9,7 @@ export const Route = createFileRoute("/article/$id")({
   loader: async ({ params }) => {
     const article = await getPublicArticle({ data: { key: params.id } });
     if (!article) throw notFound();
-    return { article };
+    return { article: article.article, imageUrl: article.imageUrl };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -33,19 +33,15 @@ export const Route = createFileRoute("/article/$id")({
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
         { name: "twitter:card", content: "summary_large_image" },
-        ...(a.image_url
+        ...(loaderData.imageUrl
           ? [
               {
                 property: "og:image",
-                content: a.image_url.startsWith("https://")
-                  ? a.image_url
-                  : `https://jaihindbharat.com${a.image_url.startsWith("/") ? "" : "/"}${a.image_url}`,
+                content: loaderData.imageUrl,
               },
               {
                 name: "twitter:image",
-                content: a.image_url.startsWith("https://")
-                  ? a.image_url
-                  : `https://jaihindbharat.com${a.image_url.startsWith("/") ? "" : "/"}${a.image_url}`,
+                content: loaderData.imageUrl,
               },
             ]
           : []),

@@ -1,38 +1,35 @@
-import { defineConfig } from '@lovable.dev/vite-tanstack-config';
-import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vite';
+import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import tsConfigPaths from 'vite-tsconfig-paths';
+import { nitro } from 'nitro/vite';
 
-const local = (path: string) => fileURLToPath(new URL(path, import.meta.url));
-// Optional: set these to your own Supabase project when building for the VPS.
-// If left unset, use the same external backend configured for the preview
-// in src/lib/backend-config.ts. There is no Lovable Cloud write fallback.
-const backendUrl = process.env['VITE_SUPABASE_URL'];
-const publishableKey = process.env['VITE_SUPABASE_PUBLISHABLE_KEY'];
-
-// Separate production target: the editor continues using vite.config.ts unchanged.
-export default defineConfig({
-  envDefine: false,
-  nitro: { preset: 'node-server' },
-  tanstackStart: { server: { entry: 'server' } },
-  vite: {
+// Independent production stack; never reads the managed preview .env file.
+export default defineConfig(() => {
+  const url = process.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
+  const key = process.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
+  if (!url || !key) throw new Error('Configure SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY before building the VPS release');
+  if (url !== 'https://clivjzpotoiqfwqzwqck.supabase.co') throw new Error('VPS builds must use the existing external backend');
+  if (key.startsWith('sb_secret_')) throw new Error('The browser requires a publishable key, never a private key');
+  const origin = process.env['SITE_ORIGIN'];
+  if (origin && new URL(origin).protocol !== 'https:') throw new Error('SITE_ORIGIN must use HTTPS');
+  return {
+    envDir: false,
+    plugins: [
+      tailwindcss(),
+      tsConfigPaths({ projects: ['./tsconfig.json'] }),
+      tanstackStart({ server: { entry: 'server' } }),
+      nitro({ preset: 'node-server' }),
+      react(),
+    ],
     define: {
       'import.meta.env.VITE_EXTERNAL_HOSTING': JSON.stringify('true'),
-      ...(backendUrl ? { 'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(backendUrl) } : {}),
-      ...(publishableKey ? { 'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(publishableKey) } : {}),
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(url),
+      'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(key),
+      'import.meta.env.VITE_EXTERNAL_BACKEND_URL': JSON.stringify(url),
+      'import.meta.env.VITE_EXTERNAL_BACKEND_PUBLISHABLE_KEY': JSON.stringify(key),
     },
-    resolve: { alias: [
-      { find: /^@\/integrations\/supabase\/client$/, replacement: local('./src/lib/external-client.ts') },
-      { find: /^@\/integrations\/supabase\/auth-attacher$/, replacement: local('./src/lib/external-auth-attacher.ts') },
-      { find: /^@\/integrations\/lovable\/index$/, replacement: local('./src/lib/external-oauth.ts') },
-    ] },
-    plugins: [{
-      name: 'external-media-pointers',
-      enforce: 'pre',
-      transform(code, id) {
-        if (!id.endsWith('.asset.json')) return;
-        const asset = JSON.parse(code);
-        asset.url = `/api/public/media/migrated/assets/${asset.asset_id}/${asset.original_filename}`;
-        return { code: JSON.stringify(asset), map: null };
-      },
-    }],
-  },
+    resolve: { dedupe: ['react', 'react-dom', '@tanstack/react-router', '@tanstack/react-start'] },
+  };
 });

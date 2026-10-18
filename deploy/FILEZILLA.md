@@ -37,11 +37,11 @@ cd /srv/jhb/releases/<release-id>
 /usr/local/bin/bun install --frozen-lockfile
 /usr/local/bin/bun run test:migration
 /usr/local/bin/bunx vitest run src/lib/article-write.test.ts src/lib/news-rules.test.ts
-/usr/local/bin/bun run build:vps
+node scripts/with-site-env.mjs /etc/jhb/site.env /usr/local/bin/bun run build:vps
 bash deploy/activate-release.sh <release-id>
 ```
 
-With no browser overrides, this build uses `src/lib/backend-config.ts`, the same external database configured for the preview. If supplying `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` at build time, they must identify that same external database. The server's `/etc/jhb/site.env` must match it. Never place the private key in a `VITE_` variable.
+This reads the external connection from `/etc/jhb/site.env` for the build without printing it. The same file configures the running website. The VPS build ignores managed `.env` values and rejects a different backend. Never place the private key in a `VITE_` variable. Repository static assets are already included; no separate logo upload is needed.
 
 Activation switches the release link, restarts the service and checks the homepage. If its health check fails it attempts to restore the previous release. Inspect failures with:
 

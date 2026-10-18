@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: '22'
       - run: bun install --frozen-lockfile
+      - run: bunx vitest run src/lib/article-write.test.ts src/lib/news-rules.test.ts src/lib/media-urls.test.ts
       - run: bun run test:migration
       - name: Build external hosting version
         run: bun run build:vps
@@ -28,7 +29,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.EXTERNAL_SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EXTERNAL_SUPABASE_PUBLISHABLE_KEY }}
       - name: Prepare release
-        run: tar -czf /tmp/jhb-release.tgz .output scripts/refresh-youtube.mjs scripts/youtube-rules.mjs package.json bun.lock deploy/activate-release.sh
+        run: node scripts/validate-portability.mjs --output && tar -czf /tmp/jhb-release.tgz .output scripts/refresh-youtube.mjs scripts/youtube-rules.mjs package.json bun.lock deploy/activate-release.sh
       - name: Deploy over verified SSH
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}

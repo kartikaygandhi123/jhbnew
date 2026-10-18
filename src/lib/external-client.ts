@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
 import { EXTERNAL_BACKEND_URL, EXTERNAL_BACKEND_PUBLISHABLE_KEY } from './backend-config';
+import { backendFetch } from './media-urls';
 
 // External (self-hosted / VPS) backend connection.
 //
@@ -22,12 +23,7 @@ export const supabase = new Proxy({} as ReturnType<typeof createClient<Database>
       const key = (vps ? import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] : undefined) || EXTERNAL_BACKEND_PUBLISHABLE_KEY;
       client = createClient<Database>(url, key, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-        global: { fetch: (input, init) => {
-          const headers = new Headers(init?.headers);
-          if (key.startsWith('sb_') && headers.get('Authorization') === `Bearer ${key}`) headers.delete('Authorization');
-          headers.set('apikey', key);
-          return fetch(input, { ...init, headers });
-        } },
+        global: { fetch: backendFetch(key) },
       });
     }
     return Reflect.get(client, property);
