@@ -1,5 +1,7 @@
 # External hosting migration
 
+- [ ] Complete the requested all-data transfer without overwriting newer external newsroom content or restoring intentionally deleted news; requires the official Lovable Cloud database export and separately downloaded storage files. External inventory checked: 15 articles, 8 e-paper pages, 0 videos; managed source has 2 articles, 1 e-paper page, 3 videos. Do not use the legacy dump/auth/storage-copy script for a full export.
+
 - [x] Add optional editor-entered reporter details across article displays and newest-first automatic ताजा खबरें; external column verified, 13 tests passed, live ordering/navigation and sample metadata rendering checked. Staff save/delete UI verification still needs an external staff session as noted below.
 
 - [x] Restore larger homepage image frames with portrait fitting, share place/time/reporter strips across news items, and remove duplicate presentation code.
