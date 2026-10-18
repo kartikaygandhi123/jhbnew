@@ -1,10 +1,12 @@
 # External hosting migration
 
-- [ ] Make source portable: independent VPS build, repository static assets and legacy URL resolution, environment examples, data/runtime audit, reproducible setup/update/rollback guide, and validation report. No production database changes or deployment authorized.
+- [x] Implement portability source changes, bundle 31 historical assets/full logo, retain external data/auth, add environment and deployment guides, and audit persistent paths; 22 tests and public-page checks passed. No data changes or deployment performed.
+- [ ] Validate standalone production build/output on clean checkout or CI; manual builds prohibited in this environment. Instructions and automated output gate provided.
+- [ ] Untrack generated .env and add exclusions; .gitignore/generated environment are protected here. Operator correction documented in deploy/README.md.
 
 - [x] Audit shared new-content/upload paths (external backend, no managed write fallback), add FileZilla SFTP release guide in deploy/FILEZILLA.md, and verify direct article/reload, e-paper, search and sign-in addresses in preview; 18 tests passed. Actual staff writes/uploads and VPS checks remain blocked below.
 
-- [ ] Complete the requested all-data transfer without overwriting newer external newsroom content or restoring intentionally deleted news; requires the official Lovable Cloud database export and separately downloaded storage files. External inventory checked: 15 articles, 8 e-paper pages, 0 videos; managed source has 2 articles, 1 e-paper page, 3 videos. Do not use the legacy dump/auth/storage-copy script for a full export.
+- Deferred by current portability scope: no imports/restoration permitted. Read-only current inventory is 3 articles, 0 editions/pages; historical static assets recovered without changing records. Any future data migration needs separate approval.
 
 - [x] Add optional editor-entered reporter details across article displays and newest-first automatic ताजा खबरें; external column verified, 13 tests passed, live ordering/navigation and sample metadata rendering checked. Staff save/delete UI verification still needs an external staff session as noted below.
 
@@ -21,4 +23,4 @@
 - [x] Add cached twice-daily YouTube videos and automatic live detection; first provider refresh awaits valid destination.
 - [x] Add repeatable GitHub-to-VPS deployment, TLS/proxy configuration, and operations guide.
 - [ ] Verify deployed VPS release and migration outcomes; requires VPS access and external staff session.
-- [ ] VPS installation, workflow activation and domain cutover; requires VPS access and GitHub secrets.
+- Not authorized in current scope: VPS installation, workflow activation and domain cutover. Operator setup is documented; no hosting actions performed.
