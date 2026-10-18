@@ -7,6 +7,7 @@ import { supabase } from "@/lib/external-client";
 import { Button } from "@/components/ui/button";
 import { useCategories } from "@/lib/content";
 import { uploadMedia } from "@/lib/upload";
+import { requireWrittenRow, saveArticle } from "@/lib/article-write";
 
 export type FieldType =
   | "text"
@@ -70,10 +71,7 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
     },
   });
 
-  const invalidate = () => {
-    void qc.invalidateQueries({ queryKey: listKey });
-    void qc.invalidateQueries();
-  };
+  const invalidate = () => qc.invalidateQueries();
 
   const save = useMutation({
     mutationFn: async (row: Row) => {
@@ -84,23 +82,37 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
         await api.save(payload);
         return;
       }
+      if (table === "articles") {
+        await saveArticle(payload, async (next) => {
+          const id = next['id'] as string | undefined;
+          if (id) {
+            return await supabase.from(table as never).update(next as never).eq("id", id).select("id").maybeSingle();
+          }
+          const insert = { ...next };
+          delete insert['id'];
+          return await supabase.from(table as never).insert(insert as never).select("id").maybeSingle();
+        });
+        return;
+      }
       const id = payload['id'] as string | undefined;
       if (id) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from(table as never)
           .update(payload as never)
-          .eq("id", id);
+          .eq("id", id).select("id").maybeSingle();
         if (error) throw error;
+        requireWrittenRow(data);
       } else {
         delete payload['id'];
-        const { error } = await supabase.from(table as never).insert(payload as never);
+        const { data, error } = await supabase.from(table as never).insert(payload as never).select("id").maybeSingle();
         if (error) throw error;
+        requireWrittenRow(data);
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await invalidate();
       toast.success("सेव हो गया");
       setDraft(null);
-      invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -111,15 +123,16 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
         await api.remove(id);
         return;
       }
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from(table as never)
         .delete()
-        .eq("id", id);
+        .eq("id", id).select("id").maybeSingle();
       if (error) throw error;
+      requireWrittenRow(data);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await invalidate();
       toast.success("हटा दिया गया");
-      invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -202,7 +215,10 @@ function RowItem({
       <div className="flex items-center gap-2 px-3 py-2">
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+            onClick={() => {
+              if (!open) setValue(row);
+              setOpen((v) => !v);
+            }}
           className="min-w-0 flex-1 truncate text-left text-sm font-semibold hover:text-primary"
         >
           {label || String(row[primary] || row['id'])}
