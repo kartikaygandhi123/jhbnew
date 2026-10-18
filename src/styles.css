@@ -200,7 +200,6 @@
 
 @utility rail-scroll {
   overscroll-behavior: contain;
-  overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--color-border) transparent;
 

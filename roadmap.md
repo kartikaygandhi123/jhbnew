@@ -1,5 +1,7 @@
 # External hosting migration
 
+- [x] Restore larger homepage image frames with portrait fitting, share place/time/reporter strips across news items, and remove duplicate presentation code.
+
 - [x] Fix duplicate article URLs and zero-row write confirmation (six tests); verify long card headlines and public article navigation on desktop/mobile. External staff save/delete end-to-end remains blocked on the staff session below.
 
 - [x] Connect preview and VPS application adapters to one external database; external reads and main-headline navigation verified.
