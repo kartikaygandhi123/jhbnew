@@ -1,10 +1,10 @@
-import logo from "@/assets/jhb-logo-new.png.asset.json";
+import { LOCAL_LOGO_URL } from "@/lib/logo";
 
 export function PageLoader({ label = "खबरें लोड हो रही हैं…" }: { label?: string }) {
   return (
     <div className="fixed inset-0 z-100 flex flex-col items-center justify-center gap-6 bg-background">
       <img
-        src={logo.url}
+        src={LOCAL_LOGO_URL}
         alt="जय हिन्द भारत"
         width={320}
         height={214}

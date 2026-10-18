@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useCategories, useSiteSettings } from "@/lib/content";
+import { resolveLogoUrl } from "@/lib/logo";
 import { FacebookBrandIcon, InstagramBrandIcon, XBrandIcon, YoutubeBrandIcon } from "@/components/SocialIcons";
 
 const socialLinks = [
@@ -32,9 +33,13 @@ export function SiteFooter() {
       <div className="tricolor-rule" />
       <div className="mx-auto flex max-w-[1400px] flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          {settings?.logo_url ? (
-            <img src={settings.logo_url} alt={settings.site_name} width={180} height={120} className="h-10 w-auto" />
-          ) : null}
+          <img
+            src={resolveLogoUrl(settings?.logo_url)}
+            alt={settings?.site_name ?? "जय हिन्द भारत"}
+            width={180}
+            height={120}
+            className="h-10 w-auto"
+          />
           <p className="text-xs text-muted-foreground">{settings?.footer_text}</p>
         </div>
         <nav className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
