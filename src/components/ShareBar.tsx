@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useAds, useSiteSettings, type Article } from "@/lib/content";
 import { renderShareCard } from "@/lib/share-image";
 import { FacebookBrandIcon, TelegramBrandIcon, WhatsAppBrandIcon, XBrandIcon } from "@/components/SocialIcons";
-import logo from "@/assets/jhb-logo-new.png.asset.json";
+import { resolveLogoUrl } from "@/lib/logo";
 
 export function ShareBar({ article }: { article: Article }) {
   const { data: settings } = useSiteSettings();
@@ -58,7 +58,7 @@ export function ShareBar({ article }: { article: Article }) {
         timeLabel: article.time_label,
         reporter: article.reporter ?? null,
         imageUrl: article.image_url,
-        logoUrl: settings?.logo_url || logo.url,
+        logoUrl: resolveLogoUrl(settings?.logo_url),
         adUrls: headerAds,
         siteName: settings?.site_name ?? "जय हिन्द भारत",
         siteUrl: typeof window === "undefined" ? "" : window.location.host,
