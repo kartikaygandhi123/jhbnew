@@ -4,6 +4,7 @@ import { AdSlot, withInFeedAds } from "@/components/Ads";
 import { FeedCard, ListSkeleton, SectionHeading, TileCard } from "@/components/news";
 import { ThreePane } from "@/components/ThreePane";
 import { bySection, useArticles, useSiteSettings, useTrendingTags } from "@/lib/content";
+import { homepageArticle } from "@/lib/news-rules";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,7 +35,7 @@ function Home() {
   const big = bySection(articles, "big");
   const desh = bySection(articles, "desh");
   const feed = bySection(articles, "feed");
-  const lead = big[0];
+  const lead = homepageArticle(articles ?? []);
 
   return (
     <ThreePane>
@@ -47,7 +48,7 @@ function Home() {
           <h1 className="headline mt-1 text-2xl leading-snug font-bold sm:text-3xl">
             {lead ? (
               <Link to="/article/$id" params={{ id: lead.slug || lead.id }} className="hover:text-primary">
-                {settings?.lead_title ?? lead.title}
+                {lead.is_homepage_main ? lead.title : (settings?.lead_title || lead.title)}
               </Link>
             ) : (
               (settings?.lead_title ?? "जय हिन्द भारत")

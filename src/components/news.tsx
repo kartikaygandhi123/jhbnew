@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 
 import logo from "@/assets/jhb-logo-new.png.asset.json";
 import { articleKey, type Article } from "@/lib/content";
+import { kickerColor } from "@/lib/news-rules";
 
 export function SectionHeading({ children }: { children: ReactNode }) {
   return <h2 className="section-rule headline mb-3 text-xl font-bold sm:text-2xl">{children}</h2>;
@@ -36,7 +37,7 @@ export function TileCard({ article }: { article: Article }) {
           />
         ) : null}
         <div className="min-w-0">
-          <p className="text-[11px] text-muted-foreground">{article.kicker}</p>
+          <p className={`text-[11px] font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}</p>
           <h3 className="headline text-[15px] font-bold sm:text-base">
             <span className="text-primary">{article.category_label}: </span>
             {article.title}
@@ -56,7 +57,7 @@ export function FeedCard({ article }: { article: Article }) {
         <div className="flex gap-3 p-3">
           <div className="min-w-0 flex-1">
             <h3 className="headline text-base font-bold sm:text-lg">
-              {article.kicker ? <span className="text-primary">{article.kicker}: </span> : null}
+              {article.kicker ? <span className={`font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}: </span> : null}
               {article.title}
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{article.summary}</p>
@@ -106,7 +107,7 @@ export function RailItem({ article, withThumb }: { article: Article; withThumb?:
       <article className="flex gap-2 border-b border-border pb-3 last:border-0">
         <div className="min-w-0">
           <h3 className="headline text-[13px] font-semibold">
-            {article.kicker ? <span className="text-primary">{article.kicker}: </span> : null}
+            {article.kicker ? <span className={`font-bold kicker-${kickerColor(article.kicker_color)}`}>{article.kicker}: </span> : null}
             {article.title}
           </h3>
           <p className="mt-1 text-[11px] text-muted-foreground">{article.time_label}</p>

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminTable, type FieldDef } from "@/components/admin/AdminTable";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/external-client";
 import { useEditions } from "@/lib/content";
 import { makeThumb, renderPdfPages } from "@/lib/epaper-upload";
 import { hindiDate, todayIso } from "@/lib/hindi-date";
@@ -57,6 +57,13 @@ const articleFields: FieldDef[] = [
   { name: "title", label: "शीर्षक", type: "text" },
   { name: "slug", label: "स्लग (URL)", type: "text", placeholder: "vikas-ki-rajniti" },
   { name: "kicker", label: "किकर", type: "text" },
+  { name: "kicker_color", label: "किकर का रंग", type: "color", options: [
+    { value: "saffron", label: "केसरिया" },
+    { value: "green", label: "हरा" },
+    { value: "red", label: "लाल" },
+    { value: "black", label: "काला" },
+  ] },
+  { name: "is_homepage_main", label: "होम पेज का मुख्य शीर्षक बनाएं", type: "boolean" },
   { name: "summary", label: "सारांश", type: "textarea" },
   { name: "body", label: "पूरी खबर (खाली लाइन से पैराग्राफ अलग करें)", type: "textarea" },
   { name: "category_slug", label: "श्रेणी", type: "category" },
@@ -166,7 +173,7 @@ function AdminPage() {
             table="articles"
             title="खबरें"
             fields={articleFields}
-            defaults={{ section: "feed", tone: "plain", published: true, sort_order: 100 }}
+            defaults={{ section: "feed", tone: "plain", kicker_color: "red", is_homepage_main: false, published: true, sort_order: 100 }}
           />
         )}
 

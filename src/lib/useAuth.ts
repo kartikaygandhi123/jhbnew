@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/external-client";
 
 /** Current Supabase session (client-side only). */
 export function useSession() {
@@ -39,7 +39,7 @@ export function useIsStaff(userId: string | undefined) {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", userId!);
+        .eq("user_id", userId ?? "");
       if (error) throw error;
       return (data ?? []).some((r) => r.role === "admin" || r.role === "editor");
     },

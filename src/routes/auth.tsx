@@ -2,8 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { lovable } from "@/integrations/lovable/index";
-import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/lib/external-oauth";
+import { supabase } from "@/lib/external-client";
 import { useSession } from "@/lib/useAuth";
 
 export const Route = createFileRoute("/auth")({
