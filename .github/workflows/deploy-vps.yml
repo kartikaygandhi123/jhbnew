@@ -44,4 +44,4 @@ jobs:
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
           scp -o StrictHostKeyChecking=yes /tmp/jhb-release.tgz "$VPS_USER@$VPS_HOST:/tmp/jhb-${GITHUB_SHA}.tgz"
-          ssh -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" "mkdir -p /srv/jhb/releases/${GITHUB_SHA} && tar -xzf /tmp/jhb-${GITHUB_SHA}.tgz -C /srv/jhb/releases/${GITHUB_SHA} && cd /srv/jhb/releases/${GITHUB_SHA} && /usr/local/bin/bun install --production --frozen-lockfile && bash deploy/activate-release.sh ${GITHUB_SHA} && rm /tmp/jhb-${GITHUB_SHA}.tgz"
+          ssh -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" "mkdir -p /srv/jhb/releases/${GITHUB_SHA} && tar -xzf /tmp/jhb-${GITHUB_SHA}.tgz -C /srv/jhb/releases/${GITHUB_SHA} && cd /srv/jhb/releases/${GITHUB_SHA} && /root/.bun/bin/bun install --production --frozen-lockfile && bash deploy/activate-release.sh ${GITHUB_SHA} && rm /tmp/jhb-${GITHUB_SHA}.tgz"
