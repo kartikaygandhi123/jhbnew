@@ -1,26 +1,30 @@
-# JaiHindBharat
+# Jai Hind Bharat
 
-need a high quality newspaper website with dedicated epaper section, references are hereby attached, logo is attached as jhb hindi, it should be smooth and fully optimized no lagging also use the logo on loader when website needs the time to load, it should simple and clean, the references attached shows that the central part is scrollable and left and right pane fixed, use your own knownledge and ceate one, also a page for youtube videos as Videos section which will import videos from youtube and plays directlt on website
+Hindi newsroom, e-paper, articles, advertising, videos and Live TV built with TanStack Start, Vite and Nitro. The application uses the existing external backend for all records, staff accounts and uploads. No database import or seed is part of a code deployment.
 
-This project was built with [Lovable](https://lovable.dev).
+## Fresh VPS deployment
 
-**Live app**: https://jhbnew.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/e1570adb-135a-4fa3-9b14-7d714250699e).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+See [deploy/README.md](deploy/README.md) for Ubuntu setup, environment configuration, Node service, HTTPS, updates and rollback. For manual uploads see [deploy/FILEZILLA.md](deploy/FILEZILLA.md). [.env.example](.env.example) documents placeholders only.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+bun install --frozen-lockfile
+node scripts/with-site-env.mjs /etc/jhb/site.env bun run build:vps
+node scripts/validate-portability.mjs --output
+node .output/server/index.mjs
 ```
+
+Node.js 22.22+ and Bun 1.3.3 are the validated tool versions. Production uses the independent `vite.vps.config.ts`; the managed development preview keeps `vite.config.ts`. `public/jhb-logo.png` and historical static media are included in Git; new staff uploads are in external storage, not a VPS release directory.
+
+## Tests
+
+```sh
+bun run test:migration
+bunx vitest run src/lib/article-write.test.ts src/lib/news-rules.test.ts src/lib/media-urls.test.ts
+node scripts/validate-portability.mjs
+```
+
+## Development and Git
+
+Lovable remains an optional editor. Accepted changes sync to the connected repository branch; verify Git sync in Project settings. GitHub is a source-code repository, not a copy of the live database or staff credentials. Use the lockfile and never upload environment files.
+
+See [the portability audit](deploy/PORTABILITY-AUDIT.md) for verified results and limitations, including the managed tracked `.env` restriction and outstanding production validation.
