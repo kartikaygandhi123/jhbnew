@@ -2,6 +2,18 @@
 
 The VPS build runs independently using Vite, TanStack Start and Nitro's Node server. Lovable is a development editor only. Articles, categories, staff accounts/roles, settings, ads, live channels, videos, editions, pages and new uploaded media use the existing external backend. No local data store or database copy is created by deployment. Do not run `migration:external`, seed scripts, or old migrations when deploying this existing database.
 
+## Deployment architecture (single, consistent layout)
+
+The long-term layout used by the workflow, service templates, activation script and this guide is:
+
+- Releases: `/srv/jhb/releases/<40-hex-id>` (one per deployment, never overwritten)
+- Live symlink: `/srv/jhb/current` → active release (switched atomically by `deploy/activate-release.sh`)
+- Service: systemd unit `jhb` (`deploy/jhb.service`), Node on `127.0.0.1:3000`, environment from `/etc/jhb/site.env`
+- Scheduled YouTube refresh: `jhb-youtube.timer` in the same release layout
+- Rollback: re-run `activate-release.sh` with the prior release identifier; the script also auto-restores the previous release if the health check fails
+
+An older server may still run from a legacy path such as `/opt/jaihindbharat`. Do not mix the two: migrate once by installing a release under `/srv/jhb/releases`, activating it, verifying the health check, and only then retiring the legacy directory and old unit. Do not claim a successful production deployment until the target paths and permissions are verified on the server itself.
+
 ## 1. Prepare Ubuntu 24.04
 
 As a server administrator, install security updates and tools:
