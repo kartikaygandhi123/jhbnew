@@ -1,10 +1,20 @@
 # Jai Hind Bharat: external hosting
 
-The current Lovable preview/live site is deliberately unchanged until a successful external copy and VPS validation. The Node build uses direct project authentication and external media. Credentials are not committed or included in releases.
+The Lovable preview and VPS now use the same user-owned database for content, sign-in and uploaded media. Both editors save directly to that database; there is no two-database replication. Hosting targets remain separate. Public connection details live in `src/lib/backend-config.ts`; private credentials are never committed.
 
 ## Current blockers
 
-The destination API URL was corrected and both auth settings and storage now respond successfully. The destination database connection still rejects authentication; correct its password/connection string securely before migration. No database/content/media copy or DNS cutover has succeeded yet. VPS access and GitHub deployment credentials have not been supplied. Google OAuth requires a Google client ID/secret configured on the user-owned project. YouTube API access successfully resolved the requested channel; the first scheduled cache write still requires working destination storage.
+The external database accepts connections and public content reads. The user has populated the tables; historical media completeness remains unverified. VPS access and GitHub deployment credentials have not been supplied. Existing external staff must sign in again; old managed sessions do not transfer. Google OAuth, SMTP and signup settings require provider verification.
+
+## Shared editor connection
+
+- Preview browser: public URL/key in `src/lib/backend-config.ts`; no private key belongs here.
+- Preview server: saved `EXTERNAL_SUPABASE_URL`, `EXTERNAL_SUPABASE_PUBLISHABLE_KEY`, and `EXTERNAL_SUPABASE_SECRET_KEY` (last one for private media only).
+- VPS: keep the GitHub build values and `/etc/jhb/site.env` settings below pointed at this same project. Code changes reach the VPS after a successful GitHub deployment; news edits need no code deployment.
+- Apply `deploy/migrations/20261018-shared-news.sql` before this release (already applied to the configured destination). It adds kicker color and a single selected homepage article without changing existing news.
+- Allow your public preview origin plus `/auth` and `https://jaihindbharat.com/auth` as OAuth return URLs in your external provider. Email/password sign-in uses the external staff account. OAuth inside an embedded preview may be restricted; open the preview as a standalone page if necessary.
+- Shared content refreshes through the site's existing one-minute cache; a reload retrieves saved changes. Concurrent edits of the same row use last-save-wins, not a merge.
+- Lovable Cloud cannot be detached from an existing project, but these application adapters no longer use it for news CRUD, sign-in, or uploaded media. Old checked-in logo/e-paper pointers remain legacy assets until their one-time media transfer is verified.
 
 ## 1. Validate and copy content
 
@@ -27,7 +37,7 @@ SUPABASE_SERVICE_ROLE_KEY=<your external secret key>
 YOUTUBE_API_KEY=<your YouTube API key>
 ```
 
-These are descriptions, not working credentials. Never use the old managed project values on the VPS. Browser builds need only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the external project. The build must fail rather than silently use old `.env` defaults when these are absent.
+These are descriptions, not working credentials. Never use the old managed project values on the VPS. Browser builds need only `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the same external project. Without explicit build values, the application-owned public configuration is used; it never retries a failed write against Lovable Cloud.
 
 Install `deploy/jhb.service`, `deploy/jhb-youtube.service` and `deploy/jhb-youtube.timer` into `/etc/systemd/system/`. Install the Nginx configuration, enable its site, and run `nginx -t`. Allow SSH, HTTP and HTTPS only; keep port 3000 bound to loopback. Grant the deployment user only permission to restart the `jhb` service via a narrow sudoers rule. Ensure `/usr/local/bin/bun` is installed and executable for that user. Do not grant general passwordless sudo.
 
