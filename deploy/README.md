@@ -44,6 +44,8 @@ Install `deploy/jhb.service`, `deploy/jhb-youtube.service` and `deploy/jhb-youtu
 
 ## 3. Automatic releases from GitHub
 
+For manual FileZilla uploads instead, follow [the SFTP release guide](FILEZILLA.md). It builds on the VPS, preserves the existing page addresses, and uses the same shared external database. Plain FTP is not recommended; use FileZilla's encrypted SFTP option. An upload alone does not start the website service.
+
 The existing Git sync must target the repository's `main` branch, or edit the workflow branch to match. Lovable changes reach the VPS only AFTER they reach that synced Git branch; drafts do not deploy until accepted. Configure the GitHub production environment secrets: `EXTERNAL_SUPABASE_URL`, `EXTERNAL_SUPABASE_PUBLISHABLE_KEY`, `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VPS_KNOWN_HOSTS`. Obtain the SSH host key fingerprint through Hostinger's trusted console; do not bypass host verification. Project secrets in Lovable do not automatically transfer into GitHub or the VPS.
 
 Each push builds the separate Node target, transfers a release, switches an atomic symlink, restarts the service and checks the homepage; on failed startup it restores the prior release. The workflow does NOT rerun the one-time migration or seed sample data. New future schema changes need explicit external migrations before deploying dependent code. One external database is used by all VPS releases, so newsroom uploads/content persist independently of code deployments.

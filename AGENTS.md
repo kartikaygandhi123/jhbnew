@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 - Keep VPS deployment opt-in through vite.vps.config.ts; the managed preview must remain usable before cutover.
+- Manual FileZilla releases use encrypted SFTP into a separate release directory and the existing Node build/activation flow; never serve source as static files or overwrite the active release, to preserve deep links and rollback.
 - Application-owned browser and server adapters use the same external backend in preview and VPS; never edit generated integrations or fall back on failed writes, to prevent split content and identities.
 - Add external schema changes as checked-in SQL under deploy/migrations and apply before dependent releases, because managed schema tools target a different database.
 - Keep homepage-selection and kicker-validation rules in a shared news-rules module with tests, so editor and public behavior stay consistent.
