@@ -33,7 +33,7 @@ export function TileCard({ article }: { article: Article }) {
             height={640}
             loading="lazy"
             decoding="async"
-            className="h-24 w-20 shrink-0 rounded-sm object-cover sm:h-28 sm:w-24 lg:w-28"
+            className="h-24 w-20 shrink-0 rounded-sm bg-muted/40 object-contain sm:h-28 sm:w-24 lg:w-28"
           />
         ) : null}
         <div className="min-w-0 flex-1">
@@ -70,7 +70,7 @@ export function FeedCard({ article }: { article: Article }) {
               height={640}
               loading="lazy"
               decoding="async"
-              className="h-24 w-20 shrink-0 rounded-sm object-cover sm:h-28 sm:w-44"
+              className="h-24 w-20 shrink-0 rounded-sm bg-muted/40 object-contain sm:h-28 sm:w-44"
             />
           ) : null}
         </div>
@@ -120,7 +120,7 @@ export function RailItem({ article, withThumb }: { article: Article; withThumb?:
             height={640}
             loading="lazy"
             decoding="async"
-            className="h-14 w-20 shrink-0 rounded-sm object-cover"
+            className="h-14 w-20 shrink-0 rounded-sm bg-muted/40 object-contain"
           />
         ) : null}
       </article>
