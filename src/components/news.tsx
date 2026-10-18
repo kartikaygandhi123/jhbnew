@@ -2,8 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Clock } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import logo from "@/assets/jhb-logo-new.png.asset.json";
 import { articleKey, type Article } from "@/lib/content";
+import { LOCAL_LOGO_URL } from "@/lib/logo";
 import { articleDetails, kickerColor } from "@/lib/news-rules";
 
 export function SectionHeading({ children }: { children: ReactNode }) {
@@ -127,7 +127,7 @@ export function RailItem({ article, withThumb }: { article: Article; withThumb?:
 export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="grid min-h-40 place-items-center rounded-md border border-border bg-card py-6" aria-label="खबरें लोड हो रही हैं">
-      <img src={logo.url} alt="जय हिन्द भारत" width={240} height={160} className="w-28 animate-pulse sm:w-36" />
+      <img src={LOCAL_LOGO_URL} alt="जय हिन्द भारत" width={240} height={160} className="w-28 animate-pulse sm:w-36" />
       <span className="sr-only">{String(rows)} खबरें लोड हो रही हैं</span>
     </div>
   );
