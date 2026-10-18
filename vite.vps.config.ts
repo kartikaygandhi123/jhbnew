@@ -2,9 +2,11 @@ import { defineConfig } from '@lovable.dev/vite-tanstack-config';
 import { fileURLToPath } from 'node:url';
 
 const local = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+// Optional: set these to your own Supabase project when building for the VPS.
+// If left unset, the build falls back to the Lovable Cloud backend (see
+// src/lib/external-client.ts), so the site keeps working either way.
 const backendUrl = process.env['VITE_SUPABASE_URL'];
 const publishableKey = process.env['VITE_SUPABASE_PUBLISHABLE_KEY'];
-if (!backendUrl || !publishableKey) throw new Error('Set external VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY before building for VPS');
 
 // Separate production target: the editor continues using vite.config.ts unchanged.
 export default defineConfig({
@@ -14,8 +16,8 @@ export default defineConfig({
   vite: {
     define: {
       'import.meta.env.VITE_EXTERNAL_HOSTING': JSON.stringify('true'),
-      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(backendUrl),
-      'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(publishableKey),
+      ...(backendUrl ? { 'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(backendUrl) } : {}),
+      ...(publishableKey ? { 'import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY': JSON.stringify(publishableKey) } : {}),
     },
     resolve: { alias: [
       { find: /^@\/integrations\/supabase\/client$/, replacement: local('./src/lib/external-client.ts') },
