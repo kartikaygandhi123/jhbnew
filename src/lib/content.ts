@@ -4,6 +4,7 @@ import { supabase } from "@/lib/external-client";
 import { listActivePromos } from "@/lib/promos.functions";
 import type { Database } from "@/integrations/supabase/types";
 import { articleDetails } from "@/lib/news-rules";
+import { DEFAULT_HOME_LAYOUT, HOME_LAYOUT_ROW, parseHomeLayout, type HomeLayout } from "@/lib/home-layout";
 
 type Tables = Database["public"]["Tables"];
 
@@ -206,5 +207,18 @@ export function useAds() {
     queryKey: ["promos", "active"],
     staleTime: STALE,
     queryFn: (): Promise<Ad[]> => listActivePromos(),
+  });
+}
+
+/** Homepage section visibility/order; defaults to the original homepage. */
+export function useHomeLayout() {
+  return useQuery({
+    queryKey: ["site_settings", HOME_LAYOUT_ROW],
+    staleTime: STALE,
+    queryFn: async (): Promise<HomeLayout> => {
+      const { data, error } = await supabase.from("site_settings").select("footer_text").eq("id", HOME_LAYOUT_ROW).maybeSingle();
+      if (error) return DEFAULT_HOME_LAYOUT;
+      return parseHomeLayout(data?.footer_text);
+    },
   });
 }
