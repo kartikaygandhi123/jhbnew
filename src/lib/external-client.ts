@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
+import { EXTERNAL_BACKEND_URL, EXTERNAL_BACKEND_PUBLISHABLE_KEY } from './backend-config';
 
 // External (self-hosted / VPS) backend connection.
 //
@@ -9,17 +10,16 @@ import type { Database } from '@/integrations/supabase/types';
 //     VITE_SUPABASE_URL            = https://clivjzpotoiqfwqzwqck.supabase.co
 //     VITE_SUPABASE_PUBLISHABLE_KEY = sb_publishable_...
 //
-// FALLBACK: if they are missing or unreachable, the site keeps working by
-// using the Lovable Cloud backend below, so nothing breaks while you migrate.
-const LOVABLE_FALLBACK_URL = 'https://goczitjmonpfjddzmwve.supabase.co';
-const LOVABLE_FALLBACK_KEY = 'sb_publishable_4QIV98D75uZlN0sIPphiRQ_7u-_LnC9';
+// Preview and VPS use one content source. Never fall back during a failed write
+// or sign-in: doing so would silently split staff accounts and newsroom content.
 
 let client: ReturnType<typeof createClient<Database>> | undefined;
 export const supabase = new Proxy({} as ReturnType<typeof createClient<Database>>, {
   get(_target, property) {
     if (!client) {
-      const url = import.meta.env['VITE_SUPABASE_URL'] || LOVABLE_FALLBACK_URL;
-      const key = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || LOVABLE_FALLBACK_KEY;
+      const vps = import.meta.env['VITE_EXTERNAL_HOSTING'] === 'true';
+      const url = (vps ? import.meta.env['VITE_SUPABASE_URL'] : undefined) || EXTERNAL_BACKEND_URL;
+      const key = (vps ? import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] : undefined) || EXTERNAL_BACKEND_PUBLISHABLE_KEY;
       client = createClient<Database>(url, key, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
         global: { fetch: (input, init) => {

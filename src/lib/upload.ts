@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/external-client";
 
 /** Uploads a file to the private media bucket and returns its public site URL. */
 export async function uploadMedia(file: File, folder = "uploads"): Promise<string> {

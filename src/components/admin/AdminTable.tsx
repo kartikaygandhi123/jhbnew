@@ -3,7 +3,8 @@ import { Loader2, Plus, Save, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/external-client";
+import { Button } from "@/components/ui/button";
 import { useCategories } from "@/lib/content";
 import { uploadMedia } from "@/lib/upload";
 
@@ -17,6 +18,7 @@ export type FieldType =
   | "select"
   | "dropdown"
   | "date"
+  | "color"
   | "category";
 
 export interface FieldDef {
@@ -333,6 +335,24 @@ function RecordForm({
               options={f.options ?? []}
               onPick={(v) => set(f.name, v)}
             />
+          )}
+
+          {f.type === "category" && (
+            <CategoryPicker slug={String(value[f.name] ?? "")} onPick={(slug, label) => onChange({ ...value, [f.name]: slug, category_label: label })} />
+          )}
+
+          {f.type === "color" && (
+            <span className="flex flex-wrap gap-2" role="group" aria-label={f.label}>
+              {(f.options ?? []).map((option) => (
+                <Button key={option.value} type="button" size="sm" variant="outline"
+                  title={option.label} aria-label={option.label} aria-pressed={value[f.name] === option.value}
+                  onClick={() => set(f.name, option.value)}
+                  className={value[f.name] === option.value ? "ring-2 ring-ring" : ""}>
+                  <span className={`h-4 w-4 rounded-full kicker-swatch-${option.value}`} aria-hidden="true" />
+                  {option.label}
+                </Button>
+              ))}
+            </span>
           )}
 
 

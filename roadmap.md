@@ -1,5 +1,8 @@
 # External hosting migration
 
+- [ ] Connect preview and VPS article editing to one external database; verify external reads and authenticated editing where access permits.
+- [ ] Add selected homepage article, restore category picker, and editor-selected kicker colors with rule tests.
+
 - [ ] Transfer schema, content, staff identities, and media; destination API access now works, but database login is still rejected.
 - [x] Add opt-in external backend/auth configuration without switching the current site.
 - [x] Add cached twice-daily YouTube videos and automatic live detection; first provider refresh awaits valid destination.

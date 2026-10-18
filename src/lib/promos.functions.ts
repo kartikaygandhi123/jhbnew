@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireSupabaseAuth } from "@/lib/external-auth-middleware";
+import { createBackendServerClient } from "@/lib/backend-server";
 import type { Database } from "@/integrations/supabase/types";
 
 type AdRow = Database["public"]["Tables"]["ads"]["Row"];
@@ -12,23 +12,8 @@ type AdRow = Database["public"]["Tables"]["ads"]["Row"];
  * browser ad-blockers cancel any request whose URL contains "ads",
  * which made direct Data API calls fail with "Failed to fetch".
  */
-function publicClient() {
-  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
-  return createClient<Database>(process.env["SUPABASE_URL"]!, key, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-    global: {
-      fetch: (input, init) => {
-        const h = new Headers(init?.headers);
-        if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization");
-        h.set("apikey", key);
-        return fetch(input, { ...init, headers: h });
-      },
-    },
-  });
-}
-
 export const listActivePromos = createServerFn({ method: "GET" }).handler(async (): Promise<AdRow[]> => {
-  const { data, error } = await publicClient().from("ads").select("*").eq("active", true).order("sort_order");
+  const { data, error } = await createBackendServerClient().from("ads").select("*").eq("active", true).order("sort_order");
   if (error) throw new Error(error.message);
   return data ?? [];
 });

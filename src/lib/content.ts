@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/external-client";
 import { listActivePromos } from "@/lib/promos.functions";
 import type { Database } from "@/integrations/supabase/types";
 
 type Tables = Database["public"]["Tables"];
 
-export type Article = Tables["articles"]["Row"];
+export type Article = Tables["articles"]["Row"] & { kicker_color?: string; is_homepage_main?: boolean };
 export type Category = Tables["categories"]["Row"];
 export type Video = Tables["videos"]["Row"];
 export type LiveChannel = Tables["live_channels"]["Row"];
@@ -178,7 +178,7 @@ export function useEditionPages(editionId: string | undefined) {
       const { data, error } = await supabase
         .from("epaper_pages")
         .select("*")
-        .eq("edition_id", editionId!)
+        .eq("edition_id", editionId ?? "")
         .order("page_no");
       if (error) throw error;
       return data ?? [];
