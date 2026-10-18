@@ -1,5 +1,7 @@
 # External hosting migration
 
+- [ ] Make source portable: independent VPS build, repository static assets and legacy URL resolution, environment examples, data/runtime audit, reproducible setup/update/rollback guide, and validation report. No production database changes or deployment authorized.
+
 - [x] Audit shared new-content/upload paths (external backend, no managed write fallback), add FileZilla SFTP release guide in deploy/FILEZILLA.md, and verify direct article/reload, e-paper, search and sign-in addresses in preview; 18 tests passed. Actual staff writes/uploads and VPS checks remain blocked below.
 
 - [ ] Complete the requested all-data transfer without overwriting newer external newsroom content or restoring intentionally deleted news; requires the official Lovable Cloud database export and separately downloaded storage files. External inventory checked: 15 articles, 8 e-paper pages, 0 videos; managed source has 2 articles, 1 e-paper page, 3 videos. Do not use the legacy dump/auth/storage-copy script for a full export.
