@@ -3,8 +3,21 @@ import { Newspaper, PlayCircle, Radio } from "lucide-react";
 
 import { ListSkeleton, RailItem, SectionHeading } from "@/components/news";
 import { bySection, useArticles, useHomeLayout, useSiteSettings, useVideos } from "@/lib/content";
-import { DEFAULT_HOME_LAYOUT, isVisible } from "@/lib/home-layout";
+import { DEFAULT_HOME_LAYOUT, isMenuVisible, isVisible } from "@/lib/home-layout";
 import { recentArticles } from "@/lib/news-rules";
+
+/** Slow, endless upward scroll like a notice board; pauses on hover/touch. */
+function NoticeBoard({ children }: { children: React.ReactNode[] }) {
+  if (children.length < 4) return <div className="space-y-3">{children}</div>;
+  return (
+    <div className="notice-viewport" style={{ ["--notice-duration" as string]: `${String(children.length * 5)}s` }}>
+      <div className="notice-track">
+        <div className="space-y-3 pb-3">{children}</div>
+        <div className="space-y-3 pb-3" aria-hidden="true">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 export function LeftRail() {
   const { data: articles, isLoading } = useArticles();
@@ -20,11 +33,11 @@ export function LeftRail() {
         {isLoading ? (
           <ListSkeleton />
         ) : (
-          <div className="space-y-3">
+          <NoticeBoard>
             {latest.map((a) => (
               <RailItem key={a.id} article={a} withThumb />
             ))}
-          </div>
+          </NoticeBoard>
         )}
       </section>
       )}
@@ -32,24 +45,24 @@ export function LeftRail() {
       {isVisible(layout, "quick-links") && (
       <section className="rounded-md border border-border bg-card p-4 text-center">
         <p className="headline text-lg font-bold">{settings?.site_name ?? "जय हिन्द भारत"}</p>
-        <Link
+        {isMenuVisible(layout, "/epaper") && <Link
           to="/epaper"
           className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
         >
           <Newspaper className="h-4 w-4" /> आज का ई-पेपर पढ़ें
-        </Link>
-        <Link
+        </Link>}
+        {isMenuVisible(layout, "/videos") && <Link
           to="/videos"
           className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-xs font-semibold transition-colors hover:bg-accent"
         >
           <PlayCircle className="h-4 w-4" /> लेटेस्ट वीडियो
-        </Link>
-        <Link
+        </Link>}
+        {isMenuVisible(layout, "/live-tv") && <Link
           to="/live-tv"
           className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-md border border-primary px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
         >
           <Radio className="h-4 w-4" /> लाइव टीवी देखें
-        </Link>
+        </Link>}
       </section>
       )}
     </div>
