@@ -549,6 +549,14 @@ function HomeLayoutAdmin() {
             </li>
           ))}
         </ul>
+        <h2 className="mt-4 mb-2 text-sm font-bold">मेन्यू (हेडर और बटन — सभी पेजों पर)</h2>
+        <ul className="grid gap-2 sm:grid-cols-3">
+          {MENU_ITEMS.map((s) => (
+            <li key={s.id} className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm">
+              {toggle(s.id)} <span>{s.label}</span>
+            </li>
+          ))}
+        </ul>
         <h2 className="mt-4 mb-2 text-sm font-bold">साइड कॉलम (सभी पेजों पर)</h2>
         <ul className="grid gap-2 sm:grid-cols-2">
           {RAIL_SECTIONS.map((s) => (
