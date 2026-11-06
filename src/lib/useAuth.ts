@@ -45,3 +45,47 @@ export function useIsStaff(userId: string | undefined) {
     },
   });
 }
+
+export interface ReporterPermissions {
+  add_articles: boolean;
+  edit_own_articles: boolean;
+  delete_own_articles: boolean;
+  publish_articles: boolean;
+  add_videos: boolean;
+}
+
+export const NO_PERMISSIONS: ReporterPermissions = {
+  add_articles: false,
+  edit_own_articles: false,
+  delete_own_articles: false,
+  publish_articles: false,
+  add_videos: false,
+};
+
+export type StaffAccess =
+  | { kind: "admin" | "editor" }
+  | { kind: "reporter"; perms: ReporterPermissions }
+  | { kind: "none" };
+
+/** Newsroom access level of the signed-in user (admin/editor = full panel, reporter = own news only). */
+export function useStaffAccess(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["staff_access", userId],
+    enabled: Boolean(userId),
+    staleTime: 60_000,
+    queryFn: async (): Promise<StaffAccess> => {
+      const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId ?? "");
+      if (error) throw error;
+      const roles = (data ?? []).map((r) => String(r.role));
+      if (roles.includes("admin")) return { kind: "admin" };
+      if (roles.includes("editor")) return { kind: "editor" };
+      if (!roles.includes("reporter")) return { kind: "none" };
+      const { data: perms } = await supabase
+        .from("staff_permissions" as never)
+        .select("*")
+        .eq("user_id", userId ?? "")
+        .maybeSingle();
+      return { kind: "reporter", perms: { ...NO_PERMISSIONS, ...((perms ?? {}) as Partial<ReporterPermissions>) } };
+    },
+  });
+}
