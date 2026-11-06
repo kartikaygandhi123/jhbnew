@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import { AdminTable, type FieldDef } from "@/components/admin/AdminTable";
 import { HomeSections } from "@/components/HomeSections";
 import { useHomeLayout } from "@/lib/content";
-import { DEFAULT_HOME_LAYOUT, HOME_LAYOUT_ROW, MAIN_SECTIONS, RAIL_SECTIONS, isVisible, moveSection, serializeHomeLayout, toggleSection, type HomeLayout } from "@/lib/home-layout";
+import { DEFAULT_HOME_LAYOUT, HOME_LAYOUT_ROW, MAIN_SECTIONS, MENU_ITEMS, RAIL_SECTIONS, isVisible, moveSection, serializeHomeLayout, toggleSection, type HomeLayout } from "@/lib/home-layout";
 import { supabase } from "@/lib/external-client";
 import { useEditions } from "@/lib/content";
 import { makeThumb, renderPdfPages } from "@/lib/epaper-upload";
 import { hindiDate, todayIso } from "@/lib/hindi-date";
 import { deletePromo, listAllPromos, savePromo } from "@/lib/promos.functions";
-import { useIsStaff, useSession } from "@/lib/useAuth";
+import { useSession, useStaffAccess, type ReporterPermissions } from "@/lib/useAuth";
+import { SiteControlsAdmin, TeamAdmin, useAutoPurge } from "@/components/admin/TeamAdmin";
 import { uploadMedia } from "@/lib/upload";
 
 export const Route = createFileRoute("/admin")({
@@ -42,6 +43,7 @@ const TABS = [
   { id: "ads", label: "विज्ञापन" },
   { id: "layout", label: "होम पेज लेआउट" },
   { id: "settings", label: "साइट सेटिंग्स" },
+  { id: "team", label: "टीम / रजिस्ट्रेशन / ऑटो-डिलीट" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -75,6 +77,7 @@ const articleFields: FieldDef[] = [
   { name: "time_label", label: "समय टेक्स्ट", type: "text" },
   { name: "reporter", label: "संवाददाता", type: "text" },
   { name: "image_url", label: "मुख्य तस्वीर", type: "image" },
+  { name: "youtube_id", label: "खबर का वीडियो (YouTube लिंक या ID, वैकल्पिक)", type: "text", placeholder: "https://youtu.be/..." },
   {
     name: "section",
     label: "सेक्शन",
@@ -104,7 +107,9 @@ const articleFields: FieldDef[] = [
 
 function AdminPage() {
   const { user, loading } = useSession();
-  const { data: isStaff, isLoading: roleLoading } = useIsStaff(user?.id);
+  const { data: access, isLoading: roleLoading } = useStaffAccess(user?.id);
+  const isStaff = access?.kind === "admin" || access?.kind === "editor";
+  useAutoPurge(access?.kind === "admin");
   const navigate = useNavigate();
   const [tab, setTab] = useState<TabId>("articles");
 
@@ -117,6 +122,10 @@ function AdminPage() {
   }
 
   if (!user) return null;
+
+  if (access?.kind === "reporter") {
+    return <ReporterPanel userId={user.id} email={user.email ?? ""} perms={access.perms} />;
+  }
 
   if (!isStaff) {
     return (
@@ -263,6 +272,8 @@ function AdminPage() {
               { name: "alt_text", label: "वैकल्पिक टेक्स्ट", type: "text" },
               { name: "width", label: "चौड़ाई (px)", type: "number" },
               { name: "height", label: "ऊंचाई (px)", type: "number" },
+              { name: "desktop_width", label: "डेस्कटॉप चौड़ाई (px) — सिर्फ हॉवरिंग, खाली = अपने आप", type: "number" },
+              { name: "desktop_height", label: "डेस्कटॉप ऊंचाई (px) — सिर्फ हॉवरिंग", type: "number" },
               { name: "dismissible", label: "बंद करने का बटन (हॉवरिंग)", type: "boolean" },
               { name: "active", label: "चालू", type: "boolean" },
               { name: "sort_order", label: "क्रम", type: "number" },
@@ -288,6 +299,8 @@ function AdminPage() {
                     alt_text: String(row['alt_text'] ?? ""),
                     width: Number(row['width'] ?? 728),
                     height: Number(row['height'] ?? 90),
+                    desktop_width: Number(row['desktop_width']) > 0 ? Number(row['desktop_width']) : null,
+                    desktop_height: Number(row['desktop_height']) > 0 ? Number(row['desktop_height']) : null,
                     dismissible: Boolean(row['dismissible']),
                     active: Boolean(row['active']),
                     sort_order: Number(row['sort_order'] ?? 100),
@@ -303,6 +316,79 @@ function AdminPage() {
 
         {tab === "layout" && <HomeLayoutAdmin />}
         {tab === "settings" && <SettingsForm />}
+        {tab === "team" && access?.kind === "admin" && (
+          <div className="space-y-4">
+            <SiteControlsAdmin />
+            <TeamAdmin currentUserId={user.id} />
+          </div>
+        )}
+        {tab === "team" && access?.kind !== "admin" && (
+          <p className="text-xs text-muted-foreground">यह हिस्सा सिर्फ एडमिन के लिए है।</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Reporter view: only their own news and videos, limited by admin-granted permissions. */
+const REPORTER_HIDDEN_FIELDS = new Set(["is_homepage_main", "is_breaking", "sort_order", "section", "tone"]);
+
+function ReporterPanel({ userId, email, perms }: { userId: string; email: string; perms: ReporterPermissions }) {
+  const [tab, setTab] = useState<"articles" | "videos">("articles");
+  const fields = articleFields.filter(
+    (f) => !REPORTER_HIDDEN_FIELDS.has(f.name) && (f.name !== "published" || perms.publish_articles),
+  );
+  const canVideos = perms.add_videos;
+  return (
+    <div className="mx-auto max-w-[1000px] px-4 py-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="headline text-xl font-bold sm:text-2xl">रिपोर्टर पैनल</h1>
+          <p className="text-[11px] text-muted-foreground">{email}</p>
+        </div>
+        <div className="flex gap-2">
+          <Link to="/" className="rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-accent">साइट देखें</Link>
+          <button type="button" onClick={() => void supabase.auth.signOut()} className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-semibold hover:bg-accent">
+            <LogOut className="h-3.5 w-3.5" /> साइन आउट
+          </button>
+        </div>
+      </div>
+      <nav className="mt-4 flex gap-2 border-b border-border pb-2">
+        <button type="button" onClick={() => setTab("articles")} className={`rounded-md px-3 py-1.5 text-xs font-semibold ${tab === "articles" ? "bg-primary text-primary-foreground" : "border border-border"}`}>मेरी खबरें</button>
+        {canVideos && (
+          <button type="button" onClick={() => setTab("videos")} className={`rounded-md px-3 py-1.5 text-xs font-semibold ${tab === "videos" ? "bg-primary text-primary-foreground" : "border border-border"}`}>मेरे वीडियो</button>
+        )}
+      </nav>
+      {!perms.publish_articles && tab === "articles" && (
+        <p className="mt-3 rounded-md bg-muted px-3 py-2 text-[11px]">आपकी खबरें एडमिन की मंज़ूरी के बाद साइट पर दिखेंगी।</p>
+      )}
+      <div className="mt-4">
+        {tab === "articles" && (
+          <AdminTable
+            table="articles"
+            title="मेरी खबरें"
+            orderBy="created_at"
+            filter={{ column: "author_id", value: userId }}
+            fields={fields}
+            defaults={{ section: "feed", tone: "plain", kicker_color: "red", is_homepage_main: false, published: perms.publish_articles, sort_order: 100, author_id: userId }}
+          />
+        )}
+        {tab === "videos" && canVideos && (
+          <AdminTable
+            table="videos"
+            title="मेरे वीडियो"
+            orderBy="created_at"
+            filter={{ column: "author_id", value: userId }}
+            fields={[
+              { name: "title", label: "शीर्षक", type: "text" },
+              { name: "youtube_id", label: "YouTube ID", type: "text", placeholder: "dQw4w9WgXcQ" },
+              { name: "category", label: "श्रेणी", type: "text" },
+              { name: "duration", label: "अवधि", type: "text" },
+              { name: "time_label", label: "तारीख टेक्स्ट", type: "text" },
+            ]}
+            defaults={{ published: true, sort_order: 100, author_id: userId }}
+          />
+        )}
       </div>
     </div>
   );
@@ -542,6 +628,14 @@ function HomeLayoutAdmin() {
               <span className={`flex-1 ${isVisible(layout, id) ? "" : "text-muted-foreground line-through"}`}>{label(id)}</span>
               <button type="button" aria-label="ऊपर" disabled={i === 0} onClick={() => setDraft(moveSection(layout, id, -1))} className="h-7 w-7 rounded border border-border disabled:opacity-30">↑</button>
               <button type="button" aria-label="नीचे" disabled={i === layout.order.length - 1} onClick={() => setDraft(moveSection(layout, id, 1))} className="h-7 w-7 rounded border border-border disabled:opacity-30">↓</button>
+            </li>
+          ))}
+        </ul>
+        <h2 className="mt-4 mb-2 text-sm font-bold">मेन्यू (हेडर और बटन — सभी पेजों पर)</h2>
+        <ul className="grid gap-2 sm:grid-cols-3">
+          {MENU_ITEMS.map((s) => (
+            <li key={s.id} className="flex items-center gap-2 rounded-md border border-border px-2 py-1.5 text-sm">
+              {toggle(s.id)} <span>{s.label}</span>
             </li>
           ))}
         </ul>

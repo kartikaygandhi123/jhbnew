@@ -200,8 +200,12 @@ export async function renderShareCard(input: ShareCardInput): Promise<Blob> {
 
   if (photo) {
     const hasArticleCopy = input.summary.trim().length > 0;
-    const photoH = !hasArticleCopy || input.summary.trim().length < 180 ? 590 : input.summary.trim().length < 320 ? 510 : 430;
-    drawCover(ctx, photo, 0, y, W, photoH);
+    const maxPhotoH = !hasArticleCopy || input.summary.trim().length < 180 ? 590 : input.summary.trim().length < 320 ? 510 : 430;
+    // Shrink the whole photo into the frame (never crop); wide photos use a shorter frame.
+    const photoH = Math.min(maxPhotoH, Math.round((W * photo.height) / Math.max(1, photo.width)));
+    ctx.fillStyle = "#f1f1f1";
+    ctx.fillRect(0, y, W, photoH);
+    drawContain(ctx, photo, 0, y, W, photoH);
     y += photoH;
   }
 

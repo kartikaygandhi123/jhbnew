@@ -2,7 +2,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArticleMeta, RailItem, SectionHeading } from "@/components/news";
 import { ShareBar } from "@/components/ShareBar";
 import { ThreePane } from "@/components/ThreePane";
-import { articleParagraphs, useArticles } from "@/lib/content";
+import { articleParagraphs, useArticles, type Article } from "@/lib/content";
+import { parseYouTubeId } from "@/lib/youtube";
 import { getPublicArticle } from "@/lib/public-content.functions";
 
 export const Route = createFileRoute("/article/$id")({
@@ -67,6 +68,7 @@ export const Route = createFileRoute("/article/$id")({
 function ArticlePage() {
   const { article } = Route.useLoaderData();
   const { data: all } = useArticles();
+  const videoId = parseYouTubeId((article as Article).youtube_id);
   const related = (all ?? [])
     .filter((a) => a.category_slug === article.category_slug && a.id !== article.id)
     .slice(0, 5);
@@ -97,6 +99,19 @@ function ArticlePage() {
             decoding="async"
             className="mx-auto mt-4 block h-auto w-auto max-w-full rounded-sm"
           />
+        ) : null}
+
+        {videoId ? (
+          <div className="mt-4 aspect-video w-full overflow-hidden rounded-md bg-muted">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${videoId}?rel=0`}
+              title={article.title}
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="h-full w-full border-0"
+            />
+          </div>
         ) : null}
 
         <div className="mt-4 space-y-4 text-[15px] leading-8">

@@ -4,10 +4,11 @@ import { useState } from "react";
 
 import { AdCreative, AdSlot } from "@/components/Ads";
 import { BreakingTicker } from "@/components/BreakingTicker";
-import { useAds, useCategories, useSiteSettings } from "@/lib/content";
+import { useAds, useCategories, useHomeLayout, useSiteSettings } from "@/lib/content";
+import { DEFAULT_HOME_LAYOUT, isMenuVisible } from "@/lib/home-layout";
 import { resolveLogoUrl } from "@/lib/logo";
 
-const navLinks = [
+const allNavLinks = [
   { to: "/", label: "होम" },
   { to: "/epaper", label: "ई-पेपर" },
   { to: "/live-tv", label: "लाइव टीवी" },
@@ -22,6 +23,8 @@ export function SiteHeader() {
   const { data: categories } = useCategories();
   const { data: settings } = useSiteSettings();
   const { data: ads } = useAds();
+  const { data: layout = DEFAULT_HOME_LAYOUT } = useHomeLayout();
+  const navLinks = allNavLinks.filter((l) => isMenuVisible(layout, l.to));
   const mobileHeaderAds = (ads ?? []).filter((ad) => ad.placement.startsWith("header")).slice(0, 2);
 
   const submitSearch = (e: React.FormEvent) => {

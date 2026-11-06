@@ -71,6 +71,23 @@ export function withInFeedAds(nodes: React.ReactNode[], every = 3): React.ReactN
   );
 }
 
+/**
+ * Hover-ad sizes as CSS variables: phones keep the original width/height,
+ * desktops use the separate desktop size (or a modest 320px cap when unset).
+ */
+function floatSize(ad: Ad): React.CSSProperties {
+  const w = ad.width > 0 ? ad.width : 300;
+  const h = ad.height > 0 ? ad.height : 250;
+  const dw = ad.desktop_width && ad.desktop_width > 0 ? ad.desktop_width : Math.min(w, 320);
+  const dh = ad.desktop_height && ad.desktop_height > 0 ? ad.desktop_height : Math.round((dw * h) / w);
+  return {
+    ["--fa-w" as string]: `${String(w)}px`,
+    ["--fa-ar" as string]: `${String(w)} / ${String(h)}`,
+    ["--fa-dw" as string]: `${String(dw)}px`,
+    ["--fa-dar" as string]: `${String(dw)} / ${String(dh)}`,
+  };
+}
+
 /** Dismissible ads that hover above the page. */
 export function FloatingAds() {
   const { data } = useAds();
@@ -83,11 +100,11 @@ export function FloatingAds() {
       {list.slice(0, 2).map((ad, i) => (
         <div
           key={ad.id}
-          className={`fixed z-40 max-w-[45vw] ${
+          className={`float-ad fixed z-40 ${
             i === 0 ? "bottom-3 right-3" : "bottom-3 left-3 hidden sm:block"
           }`}
         >
-          <div className="relative rounded-md border border-border bg-card p-1 shadow-lg">
+          <div className="relative rounded-md border border-border bg-card p-1 shadow-lg" style={floatSize(ad)}>
             {ad.dismissible && (
               <button
                 type="button"
@@ -98,7 +115,7 @@ export function FloatingAds() {
                 <X className="h-3.5 w-3.5" />
               </button>
             )}
-            <AdCreative ad={ad} />
+            <AdCreative ad={ad} className="float-ad-box" />
           </div>
         </div>
       ))}

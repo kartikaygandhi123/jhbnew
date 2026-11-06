@@ -21,6 +21,13 @@ export const RAIL_SECTIONS = [
   { id: "videos", label: "वीडियो (दायां)" },
 ] as const;
 
+/** Site-wide menu entries (header menu and left-rail buttons). */
+export const MENU_ITEMS = [
+  { id: "menu-epaper", label: "ई-पेपर मेन्यू", to: "/epaper" },
+  { id: "menu-live", label: "लाइव टीवी मेन्यू", to: "/live-tv" },
+  { id: "menu-videos", label: "वीडियो मेन्यू", to: "/videos" },
+] as const;
+
 export type MainSectionId = (typeof MAIN_SECTIONS)[number]["id"];
 export type RailSectionId = (typeof RAIL_SECTIONS)[number]["id"];
 
@@ -35,7 +42,13 @@ export const DEFAULT_HOME_LAYOUT: HomeLayout = {
 };
 
 const MAIN_IDS = new Set<string>(MAIN_SECTIONS.map((s) => s.id));
-const ALL_IDS = new Set<string>([...MAIN_IDS, ...RAIL_SECTIONS.map((s) => s.id)]);
+const ALL_IDS = new Set<string>([...MAIN_IDS, ...RAIL_SECTIONS.map((s) => s.id), ...MENU_ITEMS.map((s) => s.id)]);
+
+/** Hidden menu ids for a route path, e.g. "/epaper" → visible? */
+export function isMenuVisible(layout: HomeLayout, to: string): boolean {
+  const item = MENU_ITEMS.find((m) => m.to === to);
+  return !item || !layout.hidden.includes(item.id);
+}
 
 /** Parses stored JSON; anything invalid falls back to the current default homepage. */
 export function parseHomeLayout(raw: string | null | undefined): HomeLayout {

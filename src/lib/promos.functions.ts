@@ -35,6 +35,8 @@ const promoInput = z.object({
   alt_text: z.string().default(""),
   width: z.number().default(728),
   height: z.number().default(90),
+  desktop_width: z.number().nullable().default(null),
+  desktop_height: z.number().nullable().default(null),
   dismissible: z.boolean().default(true),
   active: z.boolean().default(true),
   sort_order: z.number().default(100),
@@ -44,7 +46,8 @@ export const savePromo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => promoInput.parse(input))
   .handler(async ({ data, context }) => {
-    const { id, ...values } = data;
+    const { id, ...rest } = data;
+    const values = rest as unknown as Database["public"]["Tables"]["ads"]["Insert"];
     if (id) {
       const { error } = await context.supabase.from("ads").update(values).eq("id", id);
       if (error) throw new Error(error.message);

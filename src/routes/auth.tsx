@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { lovable } from "@/lib/external-oauth";
 import { supabase } from "@/lib/external-client";
 import { useSession } from "@/lib/useAuth";
+import { REGISTRATION_ROW, useSettingValue } from "@/components/admin/TeamAdmin";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -28,6 +29,11 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const { user, loading } = useSession();
   const navigate = useNavigate();
+  const { data: registration } = useSettingValue(REGISTRATION_ROW);
+  const signupOpen = (registration ?? "open") === "open";
+  useEffect(() => {
+    if (!signupOpen) setMode("in");
+  }, [signupOpen]);
 
   useEffect(() => {
     if (!loading && user) void navigate({ to: "/admin" });
@@ -47,7 +53,7 @@ function AuthPage() {
           options: { emailRedirectTo: `${window.location.origin}/admin` },
         });
         if (error) throw error;
-        toast.success("खाता बन गया। अब साइन इन करें।");
+        toast.success("खाता बन गया। ईमेल पुष्टि (अगर मांगी गई हो) के बाद साइन इन करें। एडमिन अधिकार देंगे।");
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "लॉगिन विफल");
@@ -73,7 +79,7 @@ function AuthPage() {
       <div className="rounded-md border border-border bg-card p-5">
         <h1 className="headline text-xl font-bold">न्यूज़रूम पैनल</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          {mode === "in" ? "अपने खाते से साइन इन करें।" : "नया संपादक खाता बनाएं।"}
+          {mode === "in" ? "अपने खाते से साइन इन करें।" : "ईमेल और पासवर्ड से नया खाता बनाएं।"}
         </p>
 
         <form onSubmit={submit} className="mt-4 space-y-3">
@@ -111,13 +117,13 @@ function AuthPage() {
           Google से साइन इन
         </button>
 
-        <button
+        {signupOpen && <button
           type="button"
           onClick={() => setMode((m) => (m === "in" ? "up" : "in"))}
           className="mt-4 w-full text-xs font-semibold text-primary"
         >
           {mode === "in" ? "नया खाता बनाएं" : "पहले से खाता है? साइन इन करें"}
-        </button>
+        </button>}
       </div>
     </div>
   );
