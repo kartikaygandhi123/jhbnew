@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import type { Article } from "@/lib/content";
 import { supabase } from "@/lib/external-client";
 import { RETENTION_OPTIONS, RETENTION_ROW, mediaPathFromUrl, parseRetention, retentionCutoff, type RetentionMonths } from "@/lib/retention";
 import { NO_PERMISSIONS, type ReporterPermissions } from "@/lib/useAuth";
@@ -44,10 +45,10 @@ export async function purgeOldArticles(months: RetentionMonths): Promise<number>
   if (!cutoff) return 0;
   const { data, error } = await supabase
     .from("articles")
-    .select("id, image_url, is_homepage_main")
+    .select("*")
     .lt("created_at", cutoff.toISOString());
   if (error) throw error;
-  const old = (data ?? []).filter((a) => !(a as { is_homepage_main?: boolean }).is_homepage_main);
+  const old = ((data ?? []) as Article[]).filter((a) => !a.is_homepage_main);
   if (old.length === 0) return 0;
   const paths = old.map((a) => mediaPathFromUrl(a.image_url)).filter((p): p is string => Boolean(p));
   if (paths.length > 0) await supabase.storage.from("media").remove(paths);
