@@ -20,3 +20,5 @@
 - Bundle historical static asset bytes and resolve legacy read URLs through the shared media resolver without rewriting database records; new newsroom uploads stay in external storage.
 - Use the native Vite/TanStack/Nitro stack only in vite.vps.config.ts, reading explicit environment configuration and rejecting backend mismatches; keep the managed preview stack separate.
 - Refresh YouTube through a standalone scheduled script into durable JSON in external storage; visitor requests must never call the YouTube API.
+- Reporter access is enforced by database policies (user_roles 'reporter' + staff_permissions via reporter_can); the reporter panel only hides controls, so never rely on UI alone.
+- Small site-wide switches (registration, retention, home layout/menus) live as JSON/text in dedicated site_settings rows' footer_text, avoiding schema changes for settings.
