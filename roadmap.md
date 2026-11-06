@@ -1,3 +1,14 @@
+# Nov 2026 additions
+- [ ] Separate desktop/mobile size for hover ads (mobile unchanged)
+- [ ] YouTube video field on articles, shown on article page
+- [ ] Admin toggle to open/close registration (email+password)
+- [ ] Reporter role with admin-granted permissions (add news, add videos)
+- [ ] Share-as-image: shrink photo to fit, no crop
+- [ ] Article-specific share preview images
+- [ ] Admin toggles for e-paper / Live TV / videos menus
+- [ ] ताजा खबरें slow infinite notice-board scroll
+- [ ] Auto-delete articles older than 1/2/3 months (with images)
+
 # External hosting migration
 
 - [x] Implement portability source changes, bundle 31 historical assets/full logo, retain external data/auth, add environment and deployment guides, and audit persistent paths; 22 tests and public-page checks passed. No data changes or deployment performed.
