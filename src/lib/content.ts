@@ -8,7 +8,7 @@ import { DEFAULT_HOME_LAYOUT, HOME_LAYOUT_ROW, parseHomeLayout, type HomeLayout 
 
 type Tables = Database["public"]["Tables"];
 
-export type Article = Tables["articles"]["Row"] & { kicker_color?: string; is_homepage_main?: boolean; reporter?: string | null };
+export type Article = Tables["articles"]["Row"] & { kicker_color?: string; is_homepage_main?: boolean; reporter?: string | null; youtube_id?: string | null; author_id?: string | null };
 export type Category = Tables["categories"]["Row"];
 export type Video = Tables["videos"]["Row"];
 export type LiveChannel = Tables["live_channels"]["Row"];
@@ -196,7 +196,7 @@ export function bySection(list: Article[] | undefined, section: string): Article
   return (list ?? []).filter((a) => a.section === section);
 }
 
-export type Ad = Tables["ads"]["Row"];
+export type Ad = Tables["ads"]["Row"] & { desktop_width?: number | null; desktop_height?: number | null };
 
 /**
  * Active advertisement creatives. Fetched through a server function because
