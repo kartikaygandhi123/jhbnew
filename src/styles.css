@@ -287,3 +287,42 @@
     animation: none;
   }
 }
+
+/* ताजा खबरें notice board: slow endless upward scroll */
+.notice-viewport {
+  height: 26rem;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent, #000 6%, #000 94%, transparent);
+}
+
+.notice-track {
+  animation: notice-scroll var(--notice-duration, 40s) linear infinite;
+}
+
+.notice-viewport:hover .notice-track,
+.notice-viewport:focus-within .notice-track,
+.notice-viewport:active .notice-track {
+  animation-play-state: paused;
+}
+
+@keyframes notice-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-viewport {
+    height: auto;
+    mask-image: none;
+  }
+  .notice-track {
+    animation: none;
+  }
+  .notice-track > [aria-hidden="true"] {
+    display: none;
+  }
+}
