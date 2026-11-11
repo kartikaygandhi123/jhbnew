@@ -9,5 +9,6 @@ describe('admin English view', () => {
   it('translates phrases inside longer text and leaves non-Hindi text alone', () => {
     expect(toEnglish('3 महीने बाद')).toBe('3 months later');
     expect(toEnglish('reporter@site.com')).toBe('reporter@site.com');
+    expect(toEnglish('दिल्ली में बड़ी खबरें आज')).toBe('दिल्ली में बड़ी खबरें आज');
   });
 });

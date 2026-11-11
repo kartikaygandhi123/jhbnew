@@ -218,7 +218,8 @@ export function toEnglish(text: string): string {
   for (const key of KEYS) {
     if (key.length < 3) continue;
     if (out.includes(key)) out = out.split(key).join(ADMIN_EN[key]!);
-    if (!/[\u0900-\u097F]/.test(out)) break;
+    if (!/[\u0900-\u097F]/.test(out)) return out;
   }
-  return out;
+  // Only fully-understood text is switched, so news titles and other content are never half-translated.
+  return text;
 }
