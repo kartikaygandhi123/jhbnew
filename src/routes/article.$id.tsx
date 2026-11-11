@@ -10,7 +10,7 @@ export const Route = createFileRoute("/article/$id")({
   loader: async ({ params }) => {
     const article = await getPublicArticle({ data: { key: params.id } });
     if (!article) throw notFound();
-    return { article: article.article, imageUrl: article.imageUrl };
+    return { article: article.article, imageUrl: article.imageUrl, shareUrl: article.shareUrl };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -33,6 +33,8 @@ export const Route = createFileRoute("/article/$id")({
         { property: "og:title", content: a.title },
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: loaderData.shareUrl },
+        { property: "og:site_name", content: "जय हिन्द भारत" },
         { name: "twitter:card", content: "summary_large_image" },
         ...(loaderData.imageUrl
           ? [
@@ -40,6 +42,8 @@ export const Route = createFileRoute("/article/$id")({
                 property: "og:image",
                 content: loaderData.imageUrl,
               },
+              { property: "og:image:secure_url", content: loaderData.imageUrl },
+              { property: "og:image:alt", content: a.title },
               {
                 name: "twitter:image",
                 content: loaderData.imageUrl,

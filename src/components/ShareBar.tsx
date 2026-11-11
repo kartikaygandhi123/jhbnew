@@ -15,8 +15,9 @@ export function ShareBar({ article }: { article: Article }) {
 
   const [url, setUrl] = useState("");
   useEffect(() => {
-    setUrl(window.location.href);
-  }, []);
+    // Short, compact link: /article/<first 8 characters of the id>.
+    setUrl(`${window.location.origin}/article/${article.id.slice(0, 8)}`);
+  }, [article.id]);
   const text = `${article.title} — ${settings?.site_name ?? "जय हिन्द भारत"}`;
   const enc = encodeURIComponent;
 
