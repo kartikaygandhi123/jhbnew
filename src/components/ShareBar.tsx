@@ -6,6 +6,7 @@ import { useAds, useSiteSettings, type Article } from "@/lib/content";
 import { renderShareCard } from "@/lib/share-image";
 import { FacebookBrandIcon, TelegramBrandIcon, WhatsAppBrandIcon, XBrandIcon } from "@/components/SocialIcons";
 import { resolveLogoUrl } from "@/lib/logo";
+import { plainBody } from "@/lib/rich-body";
 
 export function ShareBar({ article }: { article: Article }) {
   const { data: settings } = useSiteSettings();
@@ -53,7 +54,7 @@ export function ShareBar({ article }: { article: Article }) {
         .filter((imageUrl): imageUrl is string => typeof imageUrl === "string" && imageUrl.length > 0);
       const blob = await renderShareCard({
         title: article.title,
-        summary: article.summary || article.body.split(/\n{2,}/)[0] || "",
+        summary: article.summary || plainBody(article.body).split(/\n{2,}/)[0] || "",
         kicker: article.kicker,
         place: article.place,
         timeLabel: article.time_label,
