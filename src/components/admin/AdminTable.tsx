@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
-import { Loader2, Plus, Save, Trash2, Upload } from "lucide-react";
-import { useState } from "react";
+import { Bold, CheckCircle2, ImagePlus, Loader2, Plus, Save, Trash2, Upload } from "lucide-react";
+import { useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { supabase } from "@/lib/external-client";
@@ -21,7 +21,8 @@ export type FieldType =
   | "dropdown"
   | "date"
   | "color"
-  | "category";
+  | "category"
+  | "richtext";
 
 export interface FieldDef {
   name: string;
@@ -29,6 +30,8 @@ export interface FieldDef {
   type: FieldType;
   options?: { value: string; label: string }[];
   placeholder?: string;
+  /** Shows a "current date and time" checkbox that fills this text field. */
+  nowCheckbox?: boolean;
   /** Lets a field update sibling fields (e.g. a date label or "today" toggle). */
   sideEffect?: (row: Record<string, unknown>, value: unknown) => Record<string, unknown>;
 }
@@ -51,10 +54,14 @@ interface Props {
   api?: TableApi;
   /** Custom text for each row in the list. */
   rowLabel?: (row: Row) => string;
+  /** Extra marker shown next to a row (e.g. "waiting for approval, sent by …"). */
+  rowBadge?: (row: Row) => ReactNode;
+  /** Shows a one-click "publish" button on unpublished rows. */
+  quickPublish?: boolean;
 }
 
 
-export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api, rowLabel }: Props) {
+export function AdminTable({ table, title, fields, orderBy = "sort_order", filter, defaults, api, rowLabel, rowBadge, quickPublish }: Props) {
   const qc = useQueryClient();
   const router = useRouter();
   const [draft, setDraft] = useState<Row | null>(null);
@@ -182,6 +189,10 @@ export function AdminTable({ table, title, fields, orderBy = "sort_order", filte
             row={row}
             fields={fields}
             {...(rowLabel ? { label: rowLabel(row) } : {})}
+            badge={rowBadge?.(row)}
+            {...(quickPublish && row['published'] === false
+              ? { onPublish: () => save.mutate({ ...row, published: true }) }
+              : {})}
             onSave={(next) => save.mutate(next)}
             onDelete={() => remove.mutate(String(row['id']))}
             saving={save.isPending}
@@ -199,6 +210,8 @@ function RowItem({
   row,
   fields,
   label,
+  badge,
+  onPublish,
   onSave,
   onDelete,
   saving,
@@ -206,6 +219,8 @@ function RowItem({
   row: Row;
   fields: FieldDef[];
   label?: string;
+  badge?: ReactNode;
+  onPublish?: () => void;
   onSave: (row: Row) => void;
   onDelete: () => void;
   saving: boolean;
@@ -223,11 +238,23 @@ function RowItem({
               if (!open) setValue(row);
               setOpen((v) => !v);
             }}
+          data-no-translate
           className="min-w-0 flex-1 truncate text-left text-sm font-semibold hover:text-primary"
         >
           {label || String(row[primary] || row['id'])}
         </button>
 
+        {badge}
+        {onPublish && (
+          <button
+            type="button"
+            disabled={saving}
+            onClick={onPublish}
+            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-md bg-primary px-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" /> प्रकाशित करें
+          </button>
+        )}
         <button
           type="button"
           aria-label="हटाएं"
@@ -294,7 +321,7 @@ function RecordForm({
   return (
     <div className="grid gap-3 border-t border-border bg-surface p-3 sm:grid-cols-2">
       {fields.map((f) => (
-        <label key={f.name} className={`block text-xs ${f.type === "textarea" ? "sm:col-span-2" : ""}`}>
+        <label key={f.name} className={`block text-xs ${f.type === "textarea" || f.type === "richtext" ? "sm:col-span-2" : ""}`}>
           <span className="mb-1 block font-semibold text-muted-foreground">{f.label}</span>
 
           {f.type === "textarea" && (
@@ -410,6 +437,27 @@ function RecordForm({
               onChange={(e) => set(f.name, e.target.value)}
               placeholder={f.placeholder}
               className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+            />
+          )}
+
+          {f.type === "text" && f.nowCheckbox && (
+            <span className="mt-1.5 flex items-center gap-2 text-[11px] font-semibold">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-primary"
+                onChange={(e) => {
+                  if (e.target.checked) set(f.name, nowLabel());
+                }}
+              />
+              वर्तमान दिनांक और समय डालें
+            </span>
+          )}
+
+          {f.type === "richtext" && (
+            <RichTextArea
+              value={String(value[f.name] ?? "")}
+              placeholder={f.placeholder}
+              onChange={(v) => set(f.name, v)}
             />
           )}
         </label>
@@ -605,3 +653,81 @@ function DropdownPicker({
   );
 }
 
+
+
+/** "12 नवंबर 2026, 12:30 PM" style label for the current moment (India time). */
+export function nowLabel(date: Date = new Date()): string {
+  return new Intl.DateTimeFormat("hi-IN", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+/** Article body box with "bold" and "add photo between paragraphs" buttons. */
+function RichTextArea({ value, placeholder, onChange }: { value: string; placeholder?: string | undefined; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const wrapBold = () => {
+    const el = ref.current;
+    if (!el) return;
+    const { selectionStart: a, selectionEnd: b } = el;
+    const picked = value.slice(a, b) || "बोल्ड शब्द";
+    const next = `${value.slice(0, a)}**${picked}**${value.slice(b)}`;
+    onChange(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(a + 2, a + 2 + picked.length);
+    });
+  };
+
+  const insertPhoto = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadMedia(file, "images");
+      const caption = window.prompt("तस्वीर का कैप्शन (वैकल्पिक)") ?? "";
+      const at = ref.current?.selectionEnd ?? value.length;
+      const before = value.slice(0, at).replace(/\s*$/, "");
+      const after = value.slice(at).replace(/^\s*/, "");
+      const block = `![${caption.replace(/[\[\]]/g, "")}](${url})`;
+      onChange([before, block, after].filter(Boolean).join("\n\n"));
+      toast.success("तस्वीर जोड़ दी गई");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "अपलोड विफल");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <span className="block">
+      <span className="mb-1 flex flex-wrap gap-2">
+        <button type="button" onClick={wrapBold} className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2 text-xs font-semibold hover:bg-accent">
+          <Bold className="h-3.5 w-3.5" /> बोल्ड
+        </button>
+        <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2 text-xs font-semibold hover:bg-accent disabled:opacity-50">
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImagePlus className="h-3.5 w-3.5" />} बीच में तस्वीर जोड़ें
+        </button>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => void insertPhoto(e.target.files?.[0])} />
+      </span>
+      <textarea
+        ref={ref}
+        rows={10}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-md border border-border bg-background p-2 text-sm"
+      />
+      <span className="mt-1 block text-[10px] text-muted-foreground">
+        शब्द चुनकर "बोल्ड" दबाएं। कर्सर जहां है, वहीं दो पैराग्राफ के बीच तस्वीर लगेगी।
+      </span>
+    </span>
+  );
+}

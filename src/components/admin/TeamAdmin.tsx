@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { KeyRound } from "lucide-react";
 
 import type { Article } from "@/lib/content";
 import { supabase } from "@/lib/external-client";
 import { RETENTION_OPTIONS, RETENTION_ROW, mediaPathFromUrl, parseRetention, retentionCutoff, type RetentionMonths } from "@/lib/retention";
+import { TICKER_EXPIRY_ROW, tickerExpiryOn } from "@/lib/news-rules";
 import { NO_PERMISSIONS, type ReporterPermissions } from "@/lib/useAuth";
 
 export const REGISTRATION_ROW = "registration";
@@ -87,6 +89,8 @@ export function SiteControlsAdmin() {
   const qc = useQueryClient();
   const { data: reg } = useSettingValue(REGISTRATION_ROW);
   const { data: ret } = useSettingValue(RETENTION_ROW);
+  const { data: tick } = useSettingValue(TICKER_EXPIRY_ROW);
+  const tickerOn = tickerExpiryOn(tick);
   const open = (reg ?? "open") === "open";
   const months = parseRetention(ret);
 
@@ -123,6 +127,22 @@ export function SiteControlsAdmin() {
             className="h-4 w-4 accent-primary"
           />
           {open ? "रजिस्ट्रेशन खुला है" : "रजिस्ट्रेशन बंद है"}
+        </label>
+      </section>
+
+      <section className="rounded-md border border-border bg-card p-3">
+        <h2 className="text-sm font-bold">ब्रेकिंग स्ट्रिप से 48 घंटे बाद हटाएं</h2>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          चालू होने पर ब्रेकिंग खबर 48 घंटे बाद चलती पट्टी से अपने आप हट जाती है। खबर साइट पर बनी रहती है।
+        </p>
+        <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+          <input
+            type="checkbox"
+            checked={tickerOn}
+            onChange={() => setSetting.mutate({ id: TICKER_EXPIRY_ROW, value: tickerOn ? "off" : "on" })}
+            className="h-4 w-4 accent-primary"
+          />
+          {tickerOn ? "48 घंटे बाद ऑटो-हाइड चालू है" : "ऑटो-हाइड बंद है"}
         </label>
       </section>
 
@@ -228,6 +248,15 @@ export function TeamAdmin({ currentUserId }: { currentUserId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const resetPassword = useMutation({
+    mutationFn: async ({ id, password }: { id: string; password: string }) => {
+      const { error } = await supabase.rpc("admin_set_password" as never, { _user_id: id, _password: password } as never);
+      if (error) throw error;
+    },
+    onSuccess: () => toast.success("नया पासवर्ड सेट हो गया — अब इसी से लॉगिन होगा"),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const [filter, setFilter] = useState("");
   const list = (members ?? []).filter((m) => m.email.toLowerCase().includes(filter.toLowerCase()));
 
@@ -265,6 +294,22 @@ export function TeamAdmin({ currentUserId }: { currentUserId: string }) {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  disabled={resetPassword.isPending}
+                  onClick={() => {
+                    const pw = window.prompt(`${m.email} — नया पासवर्ड लिखें (कम से कम 8 अक्षर)`);
+                    if (pw === null) return;
+                    if (pw.length < 8) {
+                      toast.error("पासवर्ड कम से कम 8 अक्षर का होना चाहिए");
+                      return;
+                    }
+                    resetPassword.mutate({ id: m.id, password: pw });
+                  }}
+                  className="inline-flex h-8 items-center gap-1 rounded-md border border-border px-2 text-xs font-semibold hover:bg-accent disabled:opacity-40"
+                >
+                  <KeyRound className="h-3.5 w-3.5" /> पासवर्ड रीसेट
+                </button>
               </div>
               {m.role === "reporter" && (
                 <div className="mt-2 grid gap-1 sm:grid-cols-2">

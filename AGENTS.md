@@ -22,3 +22,6 @@
 - Refresh YouTube through a standalone scheduled script into durable JSON in external storage; visitor requests must never call the YouTube API.
 - Reporter access is enforced by database policies (user_roles 'reporter' + staff_permissions via reporter_can); the reporter panel only hides controls, so never rely on UI alone.
 - Small site-wide switches (registration, retention, home layout/menus) live as JSON/text in dedicated site_settings rows' footer_text, avoiding schema changes for settings.
+- Admin English view is a display-only translation of known Hindi labels (src/lib/admin-i18n.ts) scoped to the admin root; add new admin labels to that dictionary instead of duplicating components.
+- Article body markup is limited to **bold** and photo-only paragraphs ![caption](url), parsed in src/lib/rich-body.ts, so existing plain bodies keep rendering unchanged.
+- Password changes for other accounts go only through the admin-checked admin_set_password database function; there is no self-service reset.

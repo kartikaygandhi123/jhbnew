@@ -24,3 +24,22 @@ export function recentArticles<T extends { published: boolean; created_at: strin
     .sort((a, b) => postingTime(b) - postingTime(a))
     .slice(0, limit);
 }
+/** Site setting row: "off" keeps breaking news in the ticker forever; anything else hides it after 48 hours. */
+export const TICKER_EXPIRY_ROW = 'ticker_expiry';
+export const TICKER_EXPIRY_HOURS = 48;
+
+export function tickerExpiryOn(raw: string | null | undefined): boolean {
+  return raw !== 'off';
+}
+
+export function breakingTickerItems<T extends { is_breaking: boolean; created_at: string }>(
+  articles: readonly T[],
+  expiryOn: boolean,
+  now: number = Date.now(),
+  limit = 12,
+): T[] {
+  const cutoff = now - TICKER_EXPIRY_HOURS * 3_600_000;
+  return articles
+    .filter((a) => a.is_breaking && (!expiryOn || (Date.parse(a.created_at) || 0) >= cutoff))
+    .slice(0, limit);
+}

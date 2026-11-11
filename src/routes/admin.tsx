@@ -16,6 +16,7 @@ import { deletePromo, listAllPromos, savePromo } from "@/lib/promos.functions";
 import { useSession, useStaffAccess, type ReporterPermissions } from "@/lib/useAuth";
 import { SiteControlsAdmin, TeamAdmin, useAutoPurge } from "@/components/admin/TeamAdmin";
 import { uploadMedia } from "@/lib/upload";
+import { AdminLanguageScope, AdminLanguageToggle, useAdminLang } from "@/components/admin/AdminLanguage";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -71,10 +72,10 @@ const articleFields: FieldDef[] = [
   ] },
   { name: "is_homepage_main", label: "होम पेज का मुख्य शीर्षक बनाएं", type: "boolean" },
   { name: "summary", label: "सारांश", type: "textarea" },
-  { name: "body", label: "पूरी खबर (खाली लाइन से पैराग्राफ अलग करें)", type: "textarea" },
+  { name: "body", label: "पूरी खबर (खाली लाइन से पैराग्राफ अलग करें)", type: "richtext" },
   { name: "category_slug", label: "श्रेणी", type: "category" },
   { name: "place", label: "स्थान", type: "text" },
-  { name: "time_label", label: "समय टेक्स्ट", type: "text" },
+  { name: "time_label", label: "समय टेक्स्ट", type: "text", nowCheckbox: true },
   { name: "reporter", label: "संवाददाता", type: "text" },
   { name: "image_url", label: "मुख्य तस्वीर", type: "image" },
   { name: "youtube_id", label: "खबर का वीडियो (YouTube लिंक या ID, वैकल्पिक)", type: "text", placeholder: "https://youtu.be/..." },
@@ -106,12 +107,33 @@ const articleFields: FieldDef[] = [
 ];
 
 function AdminPage() {
+  const [lang, setLang] = useAdminLang();
+  return (
+    <AdminLanguageScope lang={lang}>
+      <div className="mx-auto flex max-w-[1200px] justify-end px-4 pt-3">
+        <AdminLanguageToggle lang={lang} onChange={setLang} />
+      </div>
+      <AdminPageInner />
+    </AdminLanguageScope>
+  );
+}
+
+function AdminPageInner() {
   const { user, loading } = useSession();
   const { data: access, isLoading: roleLoading } = useStaffAccess(user?.id);
   const isStaff = access?.kind === "admin" || access?.kind === "editor";
   useAutoPurge(access?.kind === "admin");
   const navigate = useNavigate();
   const [tab, setTab] = useState<TabId>("articles");
+  const { data: authors } = useQuery({
+    queryKey: ["admin", "author-emails"],
+    enabled: isStaff,
+    staleTime: 60_000,
+    queryFn: async (): Promise<Record<string, string>> => {
+      const { data } = await supabase.from("profiles").select("id, email, display_name");
+      return Object.fromEntries((data ?? []).map((p) => [p.id, p.email ?? p.display_name ?? ""]));
+    },
+  });
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
@@ -187,6 +209,8 @@ function AdminPage() {
             table="articles"
             title="खबरें"
             fields={articleFields}
+            quickPublish
+            rowBadge={(row) => <PendingBadge row={row} authors={authors ?? {}} />}
             defaults={{ section: "feed", tone: "plain", kicker_color: "red", is_homepage_main: false, published: true, sort_order: 100 }}
           />
         )}
@@ -657,7 +681,7 @@ function HomeLayoutAdmin() {
       {preview && (
         <section className="rounded-md border-2 border-dashed border-primary p-3">
           <p className="mb-3 text-xs font-semibold text-primary">प्रीव्यू — मुख्य कॉलम (सेव से पहले)</p>
-          <HomeSections layout={layout} />
+          <div data-no-translate><HomeSections layout={layout} /></div>
         </section>
       )}
     </div>
@@ -781,5 +805,25 @@ function SettingsForm() {
         </button>
       </div>
     </section>
+  );
+}
+
+
+/** Marks news that is not yet published, and who sent it, so the admin can spot and publish it. */
+function PendingBadge({ row, authors }: { row: Record<string, unknown>; authors: Record<string, string> }) {
+  const authorId = typeof row["author_id"] === "string" ? row["author_id"] : "";
+  const sender = authorId ? authors[authorId] || "टीम सदस्य" : "";
+  if (row["published"] !== false && !sender) return null;
+  return (
+    <span className="flex shrink-0 flex-wrap items-center gap-1">
+      {row["published"] === false && (
+        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">प्रकाशन बाकी</span>
+      )}
+      {sender && (
+        <span className="max-w-[180px] truncate rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold text-muted-foreground" title={sender}>
+          भेजा: {sender}
+        </span>
+      )}
+    </span>
   );
 }

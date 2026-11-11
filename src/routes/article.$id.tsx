@@ -4,13 +4,14 @@ import { ShareBar } from "@/components/ShareBar";
 import { ThreePane } from "@/components/ThreePane";
 import { articleParagraphs, useArticles, type Article } from "@/lib/content";
 import { parseYouTubeId } from "@/lib/youtube";
+import { parseBodyBlock, plainBody } from "@/lib/rich-body";
 import { getPublicArticle } from "@/lib/public-content.functions";
 
 export const Route = createFileRoute("/article/$id")({
   loader: async ({ params }) => {
     const article = await getPublicArticle({ data: { key: params.id } });
     if (!article) throw notFound();
-    return { article: article.article, imageUrl: article.imageUrl };
+    return { article: article.article, imageUrl: article.imageUrl, shareUrl: article.shareUrl };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/article/$id")({
       ] };
     }
     const a = loaderData.article;
-    const desc = (a.summary || a.title).slice(0, 155);
+    const desc = (a.summary || plainBody(a.body || '') || a.title).slice(0, 155);
     return {
       meta: [
         { title: `${a.title.slice(0, 60)} — जय हिन्द भारत` },
@@ -33,6 +34,8 @@ export const Route = createFileRoute("/article/$id")({
         { property: "og:title", content: a.title },
         { property: "og:description", content: desc },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: loaderData.shareUrl },
+        { property: "og:site_name", content: "जय हिन्द भारत" },
         { name: "twitter:card", content: "summary_large_image" },
         ...(loaderData.imageUrl
           ? [
@@ -40,6 +43,8 @@ export const Route = createFileRoute("/article/$id")({
                 property: "og:image",
                 content: loaderData.imageUrl,
               },
+              { property: "og:image:secure_url", content: loaderData.imageUrl },
+              { property: "og:image:alt", content: a.title },
               {
                 name: "twitter:image",
                 content: loaderData.imageUrl,
@@ -115,9 +120,22 @@ function ArticlePage() {
         ) : null}
 
         <div className="mt-4 space-y-4 text-[15px] leading-8">
-          {articleParagraphs(article).map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
+          {articleParagraphs(article).map((p, i) => {
+            const block = parseBodyBlock(p);
+            if (block.kind === "image") {
+              return (
+                <figure key={i} className="my-2">
+                  <img src={block.url} alt={block.caption || article.title} loading="lazy" decoding="async" className="mx-auto block h-auto w-auto max-w-full rounded-sm" />
+                  {block.caption ? <figcaption className="mt-1 text-center text-xs text-muted-foreground">{block.caption}</figcaption> : null}
+                </figure>
+              );
+            }
+            return (
+              <p key={i}>
+                {block.parts.map((part, j) => (part.bold ? <strong key={j} className="font-bold">{part.text}</strong> : <span key={j}>{part.text}</span>))}
+              </p>
+            );
+          })}
         </div>
 
         <ShareBar article={article} />

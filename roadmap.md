@@ -1,4 +1,11 @@
 # Nov 2026 additions
+- [x] Admin-only password reset per team member (database function admin_set_password)
+- [x] Short share links /article/<8 chars>; fuller link-preview tags
+- [x] Breaking ticker 48h auto-hide (default on, admin toggle)
+- [x] Pending-publish badge + sender + one-click publish in admin news list
+- [x] Current date/time checkbox for time text
+- [x] Hindi/English admin view switch
+- [x] In-article photos between paragraphs and bold words
 - [ ] Verify reporter sign-in/save and admin team screen with real accounts (needs a signed-in staff session)
 - [x] Separate desktop/mobile size for hover ads (mobile unchanged)
 - [x] YouTube video field on articles, shown on article page

@@ -29,18 +29,32 @@ export const getPublicArticle = createServerFn({ method: "GET" })
       .eq("slug", data.key)
       .maybeSingle();
     const withPreview = (article: NonNullable<typeof bySlug.data>) => {
-      const origin = process.env['SITE_ORIGIN'] || requestOrigin();
+      const origin = process.env['SITE_ORIGIN'] || requestOrigin() || 'https://jaihindbharat.com';
       // Article photo first; otherwise the article's video thumbnail, so every shared link previews this news.
       const videoId = parseYouTubeId((article as { youtube_id?: string | null }).youtube_id);
-      const imageUrl = article.image_url?.startsWith('https://')
-        ? article.image_url
-        : origin && article.image_url
-          ? new URL(article.image_url, origin).href
+      const raw = article.image_url?.trim();
+      const imageUrl = raw && /^https?:\/\//.test(raw)
+        ? raw.replace(/^http:\/\//, 'https://')
+        : raw
+          ? new URL(raw, origin).href
           : videoId ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` : null;
-      return { article, imageUrl };
+      return { article, imageUrl, shareUrl: `${origin}/article/${article.id.slice(0, 8)}` };
     };
     if (bySlug.data) return withPreview(bySlug.data);
 
+    // Short share code: first 8 characters of the article id (e.g. /article/1a2b3c4d).
+    if (/^[0-9a-f]{8}$/i.test(data.key)) {
+      const code = data.key.toLowerCase();
+      const byCode = await supabasePublic
+        .from("articles")
+        .select("*")
+        .eq("published", true)
+        .gte("id", `${code}-0000-0000-0000-000000000000`)
+        .lte("id", `${code}-ffff-ffff-ffff-ffffffffffff`)
+        .limit(1);
+      const hit = byCode.data?.[0];
+      return hit ? withPreview(hit) : null;
+    }
     if (!/^[0-9a-f-]{36}$/i.test(data.key)) return null;
     const byId = await supabasePublic
       .from("articles")
