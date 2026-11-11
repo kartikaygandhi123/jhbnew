@@ -16,6 +16,7 @@ import { deletePromo, listAllPromos, savePromo } from "@/lib/promos.functions";
 import { useSession, useStaffAccess, type ReporterPermissions } from "@/lib/useAuth";
 import { SiteControlsAdmin, TeamAdmin, useAutoPurge } from "@/components/admin/TeamAdmin";
 import { uploadMedia } from "@/lib/upload";
+import { AdminLanguageScope, AdminLanguageToggle, useAdminLang } from "@/components/admin/AdminLanguage";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,

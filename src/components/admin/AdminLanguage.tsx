@@ -4,6 +4,7 @@ import { toEnglish } from "@/lib/admin-i18n";
 
 const KEY = "jhb-admin-lang";
 const ATTRS = ["placeholder", "title", "aria-label"] as const;
+const SCOPE = "#jhb-admin-root, [data-sonner-toaster]";
 const SKIP = "[data-no-translate], textarea, input, select option[data-raw]";
 
 export type AdminLang = "hi" | "en";
@@ -32,7 +33,7 @@ export function AdminLanguageScope({ lang, children }: { lang: AdminLang; childr
 
     const skip = (n: Node) => {
       const el = n.nodeType === Node.ELEMENT_NODE ? (n as Element) : n.parentElement;
-      return !el || Boolean(el.closest(SKIP));
+      return !el || Boolean(el.closest(SKIP)) || !el.closest(SCOPE);
     };
     const doText = (n: Node) => {
       if (skip(n)) return;
@@ -44,7 +45,7 @@ export function AdminLanguageScope({ lang, children }: { lang: AdminLang; childr
       }
     };
     const doEl = (el: Element) => {
-      if (el.closest("[data-no-translate]")) return;
+      if (el.closest("[data-no-translate]") || !el.closest(SCOPE)) return;
       for (const a of ATTRS) {
         const v = el.getAttribute(a);
         if (!v) continue;
@@ -74,7 +75,7 @@ export function AdminLanguageScope({ lang, children }: { lang: AdminLang; childr
     window.prompt = (m?: string, d?: string) => nativePrompt(m ? toEnglish(m) : m, d);
     window.confirm = (m?: string) => nativeConfirm(m ? toEnglish(m) : m);
 
-    walk(document.body);
+    document.querySelectorAll(SCOPE).forEach(walk);
     const obs = new MutationObserver((records) => {
       if (busy) return;
       busy = true;
@@ -100,7 +101,7 @@ export function AdminLanguageScope({ lang, children }: { lang: AdminLang; childr
     };
   }, [lang]);
 
-  return <>{children}</>;
+  return <div id="jhb-admin-root">{children}</div>;
 }
 
 export function AdminLanguageToggle({ lang, onChange }: { lang: AdminLang; onChange: (l: AdminLang) => void }) {
