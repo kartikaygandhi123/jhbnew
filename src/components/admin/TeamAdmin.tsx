@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { KeyRound } from "lucide-react";
 
 import type { Article } from "@/lib/content";
 import { supabase } from "@/lib/external-client";
@@ -228,6 +229,15 @@ export function TeamAdmin({ currentUserId }: { currentUserId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const resetPassword = useMutation({
+    mutationFn: async ({ id, password }: { id: string; password: string }) => {
+      const { error } = await supabase.rpc("admin_set_password" as never, { _user_id: id, _password: password } as never);
+      if (error) throw error;
+    },
+    onSuccess: () => toast.success("नया पासवर्ड सेट हो गया — अब इसी से लॉगिन होगा"),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const [filter, setFilter] = useState("");
   const list = (members ?? []).filter((m) => m.email.toLowerCase().includes(filter.toLowerCase()));
 
@@ -265,6 +275,22 @@ export function TeamAdmin({ currentUserId }: { currentUserId: string }) {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  disabled={resetPassword.isPending}
+                  onClick={() => {
+                    const pw = window.prompt(`${m.email} — नया पासवर्ड लिखें (कम से कम 8 अक्षर)`);
+                    if (pw === null) return;
+                    if (pw.length < 8) {
+                      toast.error("पासवर्ड कम से कम 8 अक्षर का होना चाहिए");
+                      return;
+                    }
+                    resetPassword.mutate({ id: m.id, password: pw });
+                  }}
+                  className="inline-flex h-8 items-center gap-1 rounded-md border border-border px-2 text-xs font-semibold hover:bg-accent disabled:opacity-40"
+                >
+                  <KeyRound className="h-3.5 w-3.5" /> पासवर्ड रीसेट
+                </button>
               </div>
               {m.role === "reporter" && (
                 <div className="mt-2 grid gap-1 sm:grid-cols-2">
