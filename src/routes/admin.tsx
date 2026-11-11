@@ -112,6 +112,15 @@ function AdminPage() {
   useAutoPurge(access?.kind === "admin");
   const navigate = useNavigate();
   const [tab, setTab] = useState<TabId>("articles");
+  const { data: authors } = useQuery({
+    queryKey: ["admin", "author-emails"],
+    enabled: isStaff,
+    staleTime: 60_000,
+    queryFn: async (): Promise<Record<string, string>> => {
+      const { data } = await supabase.from("profiles").select("id, email, display_name");
+      return Object.fromEntries((data ?? []).map((p) => [p.id, p.email ?? p.display_name ?? ""]));
+    },
+  });
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth" });
@@ -187,6 +196,8 @@ function AdminPage() {
             table="articles"
             title="खबरें"
             fields={articleFields}
+            quickPublish
+            rowBadge={(row) => <PendingBadge row={row} authors={authors ?? {}} />}
             defaults={{ section: "feed", tone: "plain", kicker_color: "red", is_homepage_main: false, published: true, sort_order: 100 }}
           />
         )}
@@ -781,5 +792,25 @@ function SettingsForm() {
         </button>
       </div>
     </section>
+  );
+}
+
+
+/** Marks news that is not yet published, and who sent it, so the admin can spot and publish it. */
+function PendingBadge({ row, authors }: { row: Record<string, unknown>; authors: Record<string, string> }) {
+  const authorId = typeof row["author_id"] === "string" ? row["author_id"] : "";
+  const sender = authorId ? authors[authorId] || "टीम सदस्य" : "";
+  if (row["published"] !== false && !sender) return null;
+  return (
+    <span className="flex shrink-0 flex-wrap items-center gap-1">
+      {row["published"] === false && (
+        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">प्रकाशन बाकी</span>
+      )}
+      {sender && (
+        <span className="max-w-[180px] truncate rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold text-muted-foreground" title={sender}>
+          भेजा: {sender}
+        </span>
+      )}
+    </span>
   );
 }
