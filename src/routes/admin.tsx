@@ -107,6 +107,18 @@ const articleFields: FieldDef[] = [
 ];
 
 function AdminPage() {
+  const [lang, setLang] = useAdminLang();
+  return (
+    <AdminLanguageScope lang={lang}>
+      <div className="mx-auto flex max-w-[1200px] justify-end px-4 pt-3">
+        <AdminLanguageToggle lang={lang} onChange={setLang} />
+      </div>
+      <AdminPageInner />
+    </AdminLanguageScope>
+  );
+}
+
+function AdminPageInner() {
   const { user, loading } = useSession();
   const { data: access, isLoading: roleLoading } = useStaffAccess(user?.id);
   const isStaff = access?.kind === "admin" || access?.kind === "editor";
@@ -669,7 +681,7 @@ function HomeLayoutAdmin() {
       {preview && (
         <section className="rounded-md border-2 border-dashed border-primary p-3">
           <p className="mb-3 text-xs font-semibold text-primary">प्रीव्यू — मुख्य कॉलम (सेव से पहले)</p>
-          <HomeSections layout={layout} />
+          <div data-no-translate><HomeSections layout={layout} /></div>
         </section>
       )}
     </div>

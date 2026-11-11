@@ -238,6 +238,7 @@ function RowItem({
               if (!open) setValue(row);
               setOpen((v) => !v);
             }}
+          data-no-translate
           className="min-w-0 flex-1 truncate text-left text-sm font-semibold hover:text-primary"
         >
           {label || String(row[primary] || row['id'])}
