@@ -2,12 +2,16 @@ import { Link } from "@tanstack/react-router";
 import { Radio } from "lucide-react";
 
 import { articleKey, useArticles, useSiteSettings } from "@/lib/content";
+import { useSettingValue } from "@/components/admin/TeamAdmin";
+import { TICKER_EXPIRY_ROW, breakingTickerItems, tickerExpiryOn } from "@/lib/news-rules";
 
 export function BreakingTicker() {
   const { data: articles } = useArticles();
   const { data: settings } = useSiteSettings();
 
-  const items = (articles ?? []).filter((a) => a.is_breaking).slice(0, 12);
+  const { data: expiry, isLoading: expiryLoading } = useSettingValue(TICKER_EXPIRY_ROW);
+
+  const items = expiryLoading ? [] : breakingTickerItems(articles ?? [], tickerExpiryOn(expiry));
   if (items.length === 0) return null;
 
   const seconds = settings?.ticker_seconds ?? 40;

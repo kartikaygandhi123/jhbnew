@@ -6,6 +6,7 @@ import { KeyRound } from "lucide-react";
 import type { Article } from "@/lib/content";
 import { supabase } from "@/lib/external-client";
 import { RETENTION_OPTIONS, RETENTION_ROW, mediaPathFromUrl, parseRetention, retentionCutoff, type RetentionMonths } from "@/lib/retention";
+import { TICKER_EXPIRY_ROW, tickerExpiryOn } from "@/lib/news-rules";
 import { NO_PERMISSIONS, type ReporterPermissions } from "@/lib/useAuth";
 
 export const REGISTRATION_ROW = "registration";
@@ -88,6 +89,8 @@ export function SiteControlsAdmin() {
   const qc = useQueryClient();
   const { data: reg } = useSettingValue(REGISTRATION_ROW);
   const { data: ret } = useSettingValue(RETENTION_ROW);
+  const { data: tick } = useSettingValue(TICKER_EXPIRY_ROW);
+  const tickerOn = tickerExpiryOn(tick);
   const open = (reg ?? "open") === "open";
   const months = parseRetention(ret);
 
@@ -124,6 +127,22 @@ export function SiteControlsAdmin() {
             className="h-4 w-4 accent-primary"
           />
           {open ? "रजिस्ट्रेशन खुला है" : "रजिस्ट्रेशन बंद है"}
+        </label>
+      </section>
+
+      <section className="rounded-md border border-border bg-card p-3">
+        <h2 className="text-sm font-bold">ब्रेकिंग स्ट्रिप से 48 घंटे बाद हटाएं</h2>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          चालू होने पर ब्रेकिंग खबर 48 घंटे बाद चलती पट्टी से अपने आप हट जाती है। खबर साइट पर बनी रहती है।
+        </p>
+        <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+          <input
+            type="checkbox"
+            checked={tickerOn}
+            onChange={() => setSetting.mutate({ id: TICKER_EXPIRY_ROW, value: tickerOn ? "off" : "on" })}
+            className="h-4 w-4 accent-primary"
+          />
+          {tickerOn ? "48 घंटे बाद ऑटो-हाइड चालू है" : "ऑटो-हाइड बंद है"}
         </label>
       </section>
 
