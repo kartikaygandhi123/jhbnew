@@ -79,6 +79,8 @@ const articleFields: FieldDef[] = [
   { name: "reporter", label: "संवाददाता", type: "text" },
   { name: "image_url", label: "मुख्य तस्वीर", type: "image" },
   { name: "youtube_id", label: "खबर का वीडियो (YouTube लिंक या ID, वैकल्पिक)", type: "text", placeholder: "https://youtu.be/..." },
+  { name: "attachment_url", label: "संलग्न फ़ाइल (PDF या कोई दस्तावेज़, वैकल्पिक)", type: "file" },
+  { name: "attachment_name", label: "संलग्न फ़ाइल का नाम (वैकल्पिक)", type: "text", placeholder: "जैसे: सरकारी आदेश" },
   {
     name: "section",
     label: "सेक्शन",

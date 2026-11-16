@@ -27,6 +27,8 @@ export function recentArticles<T extends { published: boolean; created_at: strin
 /** Site setting row: "off" keeps breaking news in the ticker forever; anything else hides it after 48 hours. */
 export const TICKER_EXPIRY_ROW = 'ticker_expiry';
 export const TICKER_EXPIRY_HOURS = 48;
+/** Site setting row: text shown in the ticker only when no breaking news is running. */
+export const TICKER_FALLBACK_ROW = 'ticker_fallback';
 
 export function tickerExpiryOn(raw: string | null | undefined): boolean {
   return raw !== 'off';

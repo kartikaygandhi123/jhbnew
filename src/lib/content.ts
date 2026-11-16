@@ -78,7 +78,7 @@ export function useTrendingTags() {
   });
 }
 
-/** All published articles, ordered by section position. */
+/** All published articles, newest first. */
 export function useArticles() {
   return useQuery({
     queryKey: ["articles", "published"],
@@ -90,7 +90,6 @@ export function useArticles() {
         .from("articles")
         .select("*")
         .eq("published", true)
-        .order("sort_order")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
