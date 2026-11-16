@@ -1,5 +1,10 @@
 /** Hindi → English wording for the admin panel. Hindi stays the default; English is a view-only translation. */
 export const ADMIN_EN: Record<string, string> = {
+  "संलग्न फ़ाइल (PDF या कोई दस्तावेज़, वैकल्पिक)": "Attachment (PDF or any document, optional)",
+  "संलग्न फ़ाइल का नाम (वैकल्पिक)": "Attachment name (optional)",
+  "ब्रेकिंग स्ट्रिप का डिफ़ॉल्ट टेक्स्ट": "Default breaking-strip text",
+  "जब कोई ब्रेकिंग खबर नहीं होगी तब यह टेक्स्ट चलती पट्टी में दिखेगा। ब्रेकिंग खबर आते ही यह अपने आप छिप जाएगा। खाली छोड़ने पर पट्टी नहीं दिखेगी।": "Shown in the moving strip when there is no breaking news; hides automatically when breaking news exists. Leave empty to hide the strip.",
+  "सेव": "Save",
   "48 घंटे बाद ऑटो-हाइड चालू है": "Auto-hide after 48 hours is ON",
   "PDF अपलोड विफल": "PDF upload failed",
   "PDF पढ़ा जा रहा है…": "Reading PDF…",

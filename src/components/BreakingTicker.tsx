@@ -3,7 +3,7 @@ import { Radio } from "lucide-react";
 
 import { articleKey, useArticles, useSiteSettings } from "@/lib/content";
 import { useSettingValue } from "@/components/admin/TeamAdmin";
-import { TICKER_EXPIRY_ROW, breakingTickerItems, tickerExpiryOn } from "@/lib/news-rules";
+import { TICKER_EXPIRY_ROW, TICKER_FALLBACK_ROW, breakingTickerItems, tickerExpiryOn } from "@/lib/news-rules";
 
 export function BreakingTicker() {
   const { data: articles } = useArticles();
@@ -11,8 +11,11 @@ export function BreakingTicker() {
 
   const { data: expiry, isLoading: expiryLoading } = useSettingValue(TICKER_EXPIRY_ROW);
 
+  const { data: fallback } = useSettingValue(TICKER_FALLBACK_ROW);
+
   const items = expiryLoading ? [] : breakingTickerItems(articles ?? [], tickerExpiryOn(expiry));
-  if (items.length === 0) return null;
+  const fallbackText = fallback?.trim() ?? "";
+  if (items.length === 0 && (expiryLoading || !fallbackText)) return null;
 
   const seconds = settings?.ticker_seconds ?? 40;
 
@@ -25,6 +28,12 @@ export function BreakingTicker() {
         <div className="ticker-track" style={{ animationDuration: `${String(seconds)}s` }}>
           {[0, 1].map((dup) => (
             <div key={dup} className="flex shrink-0 items-center" aria-hidden={dup === 1}>
+              {items.length === 0 ? (
+                <span className="px-6 text-xs font-semibold whitespace-nowrap sm:text-sm">
+                  <span className="mr-2 opacity-80">•</span>
+                  {fallbackText}
+                </span>
+              ) : null}
               {items.map((a) => (
                 <Link
                   key={`${String(dup)}-${a.id}`}

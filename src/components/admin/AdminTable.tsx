@@ -655,16 +655,16 @@ function DropdownPicker({
 
 
 
-/** "12 नवंबर 2026, 12:30 PM" style label for the current moment (India time). */
+/** "16 नवंबर 2026 07:56 PM" label for the current moment (India time). */
 export function nowLabel(date: Date = new Date()): string {
-  return new Intl.DateTimeFormat("hi-IN", {
-    timeZone: "Asia/Kolkata",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+  const parts = new Intl.DateTimeFormat("hi-IN", {
+    timeZone: "Asia/Kolkata", day: "numeric", month: "long", year: "numeric",
+  }).formatToParts(date);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  const time = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: true,
   }).format(date);
+  return `${get("day")} ${get("month")} ${get("year")} ${time}`;
 }
 
 /** Article body box with "bold" and "add photo between paragraphs" buttons. */

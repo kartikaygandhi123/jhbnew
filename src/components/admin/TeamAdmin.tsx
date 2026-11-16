@@ -6,7 +6,7 @@ import { KeyRound } from "lucide-react";
 import type { Article } from "@/lib/content";
 import { supabase } from "@/lib/external-client";
 import { RETENTION_OPTIONS, RETENTION_ROW, mediaPathFromUrl, parseRetention, retentionCutoff, type RetentionMonths } from "@/lib/retention";
-import { TICKER_EXPIRY_ROW, tickerExpiryOn } from "@/lib/news-rules";
+import { TICKER_EXPIRY_ROW, TICKER_FALLBACK_ROW, tickerExpiryOn } from "@/lib/news-rules";
 import { NO_PERMISSIONS, type ReporterPermissions } from "@/lib/useAuth";
 
 export const REGISTRATION_ROW = "registration";
@@ -91,6 +91,9 @@ export function SiteControlsAdmin() {
   const { data: ret } = useSettingValue(RETENTION_ROW);
   const { data: tick } = useSettingValue(TICKER_EXPIRY_ROW);
   const tickerOn = tickerExpiryOn(tick);
+  const { data: fallbackSaved } = useSettingValue(TICKER_FALLBACK_ROW);
+  const [fallbackDraft, setFallbackDraft] = useState<string | null>(null);
+  const fallbackValue = fallbackDraft ?? fallbackSaved ?? "";
   const open = (reg ?? "open") === "open";
   const months = parseRetention(ret);
 
@@ -144,6 +147,28 @@ export function SiteControlsAdmin() {
           />
           {tickerOn ? "48 घंटे बाद ऑटो-हाइड चालू है" : "ऑटो-हाइड बंद है"}
         </label>
+      </section>
+
+      <section className="rounded-md border border-border bg-card p-3">
+        <h2 className="text-sm font-bold">ब्रेकिंग स्ट्रिप का डिफ़ॉल्ट टेक्स्ट</h2>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          जब कोई ब्रेकिंग खबर नहीं होगी तब यह टेक्स्ट चलती पट्टी में दिखेगा। ब्रेकिंग खबर आते ही यह अपने आप छिप जाएगा। खाली छोड़ने पर पट्टी नहीं दिखेगी।
+        </p>
+        <div className="mt-3 flex gap-2">
+          <input
+            value={fallbackValue}
+            onChange={(e) => setFallbackDraft(e.target.value)}
+            placeholder="जैसे: जय हिन्द भारत — हर खबर सबसे पहले"
+            className="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-2 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => setSetting.mutate({ id: TICKER_FALLBACK_ROW, value: fallbackValue.trim() })}
+            className="shrink-0 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground"
+          >
+            सेव
+          </button>
+        </div>
       </section>
 
       <section className="rounded-md border border-border bg-card p-3">

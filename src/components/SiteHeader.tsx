@@ -73,7 +73,7 @@ export function SiteHeader() {
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <nav className="no-scrollbar flex flex-1 items-stretch overflow-x-auto whitespace-nowrap">
+          <nav className="no-scrollbar flex min-w-0 flex-1 touch-pan-x items-stretch overflow-x-auto overscroll-x-contain whitespace-nowrap">
             {navLinks.map((item) => (
               <Link
                 key={item.to}
@@ -91,7 +91,7 @@ export function SiteHeader() {
                 to="/category/$slug"
                 params={{ slug: cat.slug }}
                 activeProps={{ className: "bg-primary" }}
-                className="hidden items-center px-4 py-3 text-sm font-bold transition-colors hover:bg-white/10 md:flex"
+                className="flex shrink-0 items-center px-4 py-3 text-sm font-bold transition-colors hover:bg-white/10"
               >
                 {cat.label}
               </Link>
