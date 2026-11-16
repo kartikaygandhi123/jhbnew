@@ -64,3 +64,11 @@ describe('breaking ticker 48-hour expiry', () => {
     expect(breakingTickerItems(items, false, now).map((a) => a.id)).toEqual(['fresh', 'old']);
   });
 });
+
+import { nowLabel } from "@/components/admin/AdminTable";
+import { describe as d2, it as i2, expect as e2 } from "vitest";
+d2("current date/time label", () => {
+  i2("uses 16 नवंबर 2026 07:56 PM format", () => {
+    e2(nowLabel(new Date("2026-11-16T14:26:00Z"))).toBe("16 नवंबर 2026 07:56 PM");
+  });
+});
