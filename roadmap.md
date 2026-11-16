@@ -1,4 +1,5 @@
 # Nov 2026 additions
+- [x] Nov 16: mobile category menu scroll, newest-first news, article attachments, ticker default text, new date/time format
 - [x] Admin-only password reset per team member (database function admin_set_password)
 - [x] Short share links /article/<8 chars>; fuller link-preview tags
 - [x] Breaking ticker 48h auto-hide (default on, admin toggle)
