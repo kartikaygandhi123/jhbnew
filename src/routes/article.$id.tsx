@@ -119,6 +119,19 @@ function ArticlePage() {
           </div>
         ) : null}
 
+        {(article as Article & { attachment_url?: string | null }).attachment_url ? (
+          <a
+            href={(article as Article & { attachment_url?: string | null }).attachment_url ?? "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+            className="mt-4 flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-2 text-sm font-semibold text-primary hover:bg-accent"
+          >
+            <span aria-hidden>📎</span>
+            {(article as Article & { attachment_name?: string | null }).attachment_name?.trim() || "संलग्न फ़ाइल देखें / डाउनलोड करें"}
+          </a>
+        ) : null}
+
         <div className="mt-4 space-y-4 text-[15px] leading-8">
           {articleParagraphs(article).map((p, i) => {
             const block = parseBodyBlock(p);
